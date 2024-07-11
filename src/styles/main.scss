@@ -1,0 +1,11 @@
+@import '../Layers/00_Background/BackgroundLayer.scss';
+@import '../Layers/01_Fight/FightLayer.scss';
+
+// Global Styles
+#root {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    background-color: aqua
+  }
