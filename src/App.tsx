@@ -1,19 +1,19 @@
-import { useState } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { increment,decrement } from './store/slices/counterSlice'
+import { selectCount } from './store/selectors/counterSelector'
 import './styles/main.scss'
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  // const [count, setCount] = useState(0)
+  const count = useSelector(selectCount)
+  const dispatch = useDispatch()
   return (
     <>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div>Count: {count}</div>
+        <button onClick={() => dispatch(increment())}>Increment</button>
+        <button onClick={() => dispatch(decrement())}>Decrement</button>
       </div>
     </>
   )
