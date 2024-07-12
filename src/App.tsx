@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux'
-import { increment,decrement } from './store/slices/counterSlice'
-import { selectCount } from './store/selectors/counterSelector'
+import { increment,decrement } from './redux/slices/counter/counterSlice'
+import { selectCount } from './redux'
 import './styles/main.scss'
 
 function App() {
