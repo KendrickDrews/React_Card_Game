@@ -4,13 +4,13 @@ const FightLayer = () => {
   return (
     <div className="layer-01-container">
       <div className="run-info">
-        <div>
+        <div className="info-character">
           <div> character_Name</div>
           <div> health</div>
           <div> Gold</div>
         </div>
-        <div> Current Floor </div>
-        <div> 
+        <div className="info-floor"> Current Floor </div>
+        <div className="info-system"> 
           <div> Map </div>
           <div> deck</div>
           <div> controls</div>
@@ -29,8 +29,6 @@ const FightLayer = () => {
         </div>
         <div className="discard-and-endTurn"></div>
       </div>
-      
-      <h1>Layer 01 FIGHT</h1>
     </div>
   )
 }
