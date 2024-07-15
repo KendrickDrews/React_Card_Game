@@ -1,25 +1,30 @@
 
 .run-info {
     background-color: lightblue;
-    display:grid;
+    display: flex;
     flex-direction: row;
+    justify-content: space-around;
     width: 100%;
     height: 5%;
 }
 .info-character {
     display: flex;
     height: 100%;
+    width: 20%;    
+    align-items: center;
+    justify-content: space-between;
 }
 .info-floor {
     display:flex;
     height: 100%;
-
+    width: 20%;    
+    align-items: center;
 }
 .info-system {
+    height: 100%;
     width: 12%;
     display: flex;
-    justify-content: space-between;
-    justify-self: flex-end;
+    justify-content: space-between;   
     align-items: center;
 }
 .artifact-bar {
@@ -34,6 +39,14 @@
     width: 100%;
     display:flex;
     height: 55%;
+}
+.battle-stations > div {
+    display:flex;
+    height: 100%;
+    width: 50%;
+    box-sizing: border-box;
+    border: 1px solid green;
+
 }
 .card-area {
     display:flex; 
@@ -69,7 +82,7 @@
 }
 .discard-and-endTurn {
     display:flex;
-    background-color:azure;
+    background-color:pink;
     height: 100%;
     width: 12.5%;
 }

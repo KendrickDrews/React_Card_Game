@@ -1,5 +1,8 @@
+import  Deck  from "./Deck/Deck"
 
 const FightLayer = () => {
+
+
 
   return (
     <div className="layer-01-container">
@@ -17,16 +20,17 @@ const FightLayer = () => {
         </div>
       </div>
       <div className="artifact-bar"></div>
-      <div className="battle-stations"></div>
+      <div className="battle-stations">
+        <div className="station-player">
+          <div className="unit">Character</div>
+        </div>
+        <div className="station-enemy">
+          <div className="unit">Monster</div>
+        </div>
+      </div>
       <div className="card-area">
         <div className="draw-and-mana"></div>
-        <div className="deck">
-          <div className="card">01</div>
-          <div className="card">02</div>
-          <div className="card">03</div>
-          <div className="card">04</div>
-          <div className="card">05</div>
-        </div>
+        <Deck />
         <div className="discard-and-endTurn"></div>
       </div>
     </div>
