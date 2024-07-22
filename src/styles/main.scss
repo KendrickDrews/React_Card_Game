@@ -1,5 +1,8 @@
 @import '../Layers/00_Background/BackgroundLayer.scss';
 @import '../Layers/01_Fight/FightLayer.scss';
+@import '../Layers/02_Map/MapLayer.scss';
+
+$number_of_layers: 3;
 
 // Global Styles
 html {
@@ -12,6 +15,7 @@ body  {
     margin: 0;
     padding: 0;
     background-color: red;
+    overflow: hidden;
 }
 #root {
     width: 100%;
@@ -22,14 +26,49 @@ body  {
     background-color: aqua;
     box-sizing: border-box;
   }
+
+  @function get-top-position($i) {
+    @if $i % 4 == 0 {
+      @return 0;
+    } @else if $i % 3 == 0 {
+      @return 100vh;
+    } @else if $i % 2 == 0 {
+      @return  0;
+    } @else {
+      @return -100vh;
+    }
+  }
+  @function get-left-position($i) {
+    @if $i % 4 == 0 {
+      @return -100vw;
+    } @else if $i % 3 == 0 {
+      @return 0;
+    } @else if $i % 2 == 0 {
+      @return  100vw;
+    } @else {
+      @return 0;
+    }
+  }
 // This sets the base for every layer. Add through 'n' layers.
-  @for $i from 0 through 2 {
-    .layer-#{if($i < 10, '0' + $i, $i)}-container {
+  @for $i from 0 through $number_of_layers {
+    .layer-#{if($i < $number_of_layers, '0' + $i, $i)}-container {
       height: 100%;
       width: 100%;
       position: absolute;
+      top: 0;
+      left: 0;
       z-index: $i * 100;
       display: flex;
       flex-direction: column;
+      transition: all 1.5s ease-in-out;
+
+      &.layer-hidden {
+        pointer-events: none;
+        // opacity: 0;
+        top: get-top-position($i);
+        left: get-left-position($i)
+      }
+
     }
+
   }

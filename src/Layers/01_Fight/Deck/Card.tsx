@@ -1,8 +1,8 @@
 interface CardProps {
-    title: string;
-  }
+  title: string;
+}
   
-const Card: React.FC<CardProps> = ({title}) => {
+const Card = ({title}: CardProps) => {
 
     return (
       <div className="card">

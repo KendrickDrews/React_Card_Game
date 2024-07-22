@@ -6,7 +6,7 @@ const Deck = () => {
 
     return (
         <div className="deck">
-            { deck.map((item) => ( <Card title={item} /> ))}
+            { deck.map((item, index) => ( <Card key={index} title={item} /> ))}
         </div>
     )
 }
