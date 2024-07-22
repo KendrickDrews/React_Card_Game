@@ -26,7 +26,7 @@ body  {
     background-color: aqua;
     box-sizing: border-box;
   }
-
+// Below two functions are for making each layer come and go from a different direction
   @function get-top-position($i) {
     @if $i % 4 == 0 {
       @return 0;
