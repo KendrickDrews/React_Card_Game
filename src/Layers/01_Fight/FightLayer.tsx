@@ -15,12 +15,50 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
 
 
     if (activePhase === "player_start") {
-      console.log("Player Start Script")
-      console.log("Sup Idiot?")
+      // set Mana to max
+      // Apply Buffs
+      // Remove leftover Block
+      // Remove buffs that remove
+      // Do on Turn Start damage
+      // Draw Cards
+      
       setActivePhase(phases[1])
     }
+    // Might be unnecessary since its when users do stuff
     if (activePhase === "player_active") {
-      console.log("It's the next phase!")
+      // Set things to clickable
+      console.log("It's the player turn!")
+    }
+
+    if (activePhase === "player_end") {
+      // Player End of Turn FX
+      setActivePhase(phases[3])
+    }
+    if (activePhase === "enemy_start") {
+      // Enemy Buffs
+      // remove last turns block
+      
+      // decrement debuffs
+      // On turn Start Damage
+      setActivePhase(phases[4])
+    }
+    if (activePhase === "enemy_active") {
+      // Enemy Attack
+      setActivePhase(phases[5])
+    }
+    if (activePhase === "enemy_end") {
+      // Enemy Debuffs
+      // decrement buffs
+      // 
+      setActivePhase(phases[0])
+    }
+
+    function endTurn() {
+      // Make it so nothing is clickable (maybe few things clickable)
+      // decrement buffs on player
+      // Discard cards
+      // Discard FX
+      setActivePhase(phases[2])
     }
 
 
@@ -55,7 +93,7 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
         <div className="draw-and-mana"></div>
         <Deck />
         <div className="discard-and-endTurn">
-          <button onClick={() => setActivePhase(phases[0])}></button>
+          <button onClick={() => endTurn()}></button>
         </div>
       </div>
     </div>
