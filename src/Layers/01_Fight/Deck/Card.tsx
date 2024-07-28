@@ -1,8 +1,7 @@
-interface CardProps {
-  title: string;
-}
+import { PlayingCard } from "../../../types/card"
+
   
-const Card = ({title}: CardProps) => {
+const Card = ({title}: PlayingCard) => {
 
     return (
       <div className="card">

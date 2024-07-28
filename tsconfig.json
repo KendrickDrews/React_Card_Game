@@ -1,4 +1,11 @@
 {
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@/types": ["types"],
+      "@/types/*": ["types/*"]
+    }
+  },
   "files": [],
   "references": [
     {
