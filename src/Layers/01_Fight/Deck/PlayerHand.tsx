@@ -1,10 +1,15 @@
 
+import { useEffect } from 'react'
 import { PlayingCard } from '../../../types/card'
 import Card from './Card'
 
 
 
 const PlayerHand = ({hand}: {hand: PlayingCard[]}) => {
+
+    useEffect(() => {
+        console.log("hand has changed!", hand)
+    },[hand])
 
 
     return (

@@ -1,7 +1,7 @@
 import  PlayerHand  from "./Deck/PlayerHand"
 import cricket from '../../assets/Cricket_R.png'
 import sun from '../../assets/Sun_R.png'
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { PlayingCard } from "../../types/card";
 
 interface LayerContext {
@@ -9,10 +9,13 @@ interface LayerContext {
   setLayerContext: (value: string) => void;
 }
 
+let battleStart = true;
+
 const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
 
   const phases = ["player_start","player_active","player_end","enemy_start","enemy_active","enemy_end"];
-  const [activePhase, setActivePhase] = useState(phases[0]);
+  // const [activePhase, setActivePhase] = useState(phases[0]);
+  let activePhase = phases[0]
   const [turn, setTurn] = useState(0);
 
   const baseDrawAmount = 5;
@@ -94,8 +97,8 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
   // const discard: unknown[] = [];
 
   function shuffleDeckIntoDraw() {
-    const shuffledDeck = shuffleCards(deck)
-    shuffledDeck.map(item => draw.push(item));
+    shuffleCards(deck).map(item => draw.push(item));
+    console.log("shuffle Deck into Draw")
   }
 
   function shuffleCards(array: PlayingCard[]) {
@@ -121,13 +124,23 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       draw.shift()
     }
   }
+  const setNextPhase = (i: number) => {
+    activePhase = phases[i]
+  }
 
 
     if (activePhase === "player_start") {
       console.log("its player Start")
+      // Need to move this logic into Redux.
+      // React is too tempermental.
       if (turn === 0) {
+        console.log(battleStart)
+        
         shuffleDeckIntoDraw()
+        battleStart = false;
       }
+      console.log(hand)
+      console.log(battleStart)
       // set Mana to max
       // Apply Buffs
       // Remove leftover Block
@@ -136,6 +149,7 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       // Draw Cards
       // shuffleDraw();
       drawCards(baseDrawAmount);
+      setNextPhase(1)
       // setActivePhase(phases[1]) // Functions are happening out of order
     }
     // Might be unnecessary since its when users do stuff
@@ -146,7 +160,7 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
 
     if (activePhase === "player_end") {
       // Player End of Turn FX
-      setActivePhase(phases[3])
+      setNextPhase(3)
     }
     if (activePhase === "enemy_start") {
       // Enemy Buffs
@@ -154,18 +168,18 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       
       // decrement debuffs
       // On turn Start Damage
-      setActivePhase(phases[4])
+      setNextPhase(4)
     }
     if (activePhase === "enemy_active") {
       // Enemy Attack
-      setActivePhase(phases[5])
+      setNextPhase(5)
     }
     if (activePhase === "enemy_end") {
       // Enemy Debuffs
       // decrement buffs
       // 
       setTurn(turn + 1)
-      setActivePhase(phases[0])
+      setNextPhase(0)
     }
 
     function endTurn() {
@@ -173,9 +187,8 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       // decrement buffs on player
       // Discard cards
       // Discard FX
-      setActivePhase(phases[2])
+      setNextPhase(2)
     }
-
 
   return (
     <div className={`layer-01-container ${layerContext !== 'Fight' ? 'layer-hidden' : ''}`}>
