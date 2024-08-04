@@ -2,7 +2,10 @@ import  PlayerHand  from "./Deck/PlayerHand"
 import cricket from '../../assets/Cricket_R.png'
 import sun from '../../assets/Sun_R.png'
 import { useEffect, useState } from "react"
-import { PlayingCard } from "../../types/card";
+import { Deck } from './Deck/Deck'
+import { useDispatch, useSelector } from "react-redux";
+import {playerFightStateSelector, playerHandSelector} from "../../redux/slices/01_Fight/fightSelector";
+import { loadDeck, shuffleDeckToDraw, shuffleDiscardToDraw, drawCard } from "../../redux";
 
 interface LayerContext {
   layerContext: string;
@@ -10,136 +13,52 @@ interface LayerContext {
 }
 
 let battleStart = true;
+// let shouldDraw = true;
 
 const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
 
+  const dispatch = useDispatch()
+
+  const playerState = useSelector(playerFightStateSelector);
+  const handState = useSelector(playerHandSelector)
+
+  console.log(playerState)
+
   const phases = ["player_start","player_active","player_end","enemy_start","enemy_active","enemy_end"];
   // const [activePhase, setActivePhase] = useState(phases[0]);
+  // const [battleStart, setBattleStart] = useState(true)
+  const [shouldDraw, setShouldDraw] = useState(true)
   let activePhase = phases[0]
   const [turn, setTurn] = useState(0);
 
   const baseDrawAmount = 5;
 
-  const deck = [ // Creature cards
-    {
-      title: "Goblin Scout",
-      type: "Creature",
-      manaCost: 1,
-      value: 1,
-      description: "Haste: This creature can attack immediately."
-    },
-    {
-      title: "Elven Archer",
-      type: "Creature",
-      manaCost: 2,
-      value: 2,
-      description: "When this creature enters the battlefield, deal 1 damage to target creature."
-    },
-    {
-      title: "Stone Golem",
-      type: "Creature",
-      manaCost: 4,
-      value: 4,
-      description: "Defender: This creature can't attack."
-    },
-    
-    // Spell cards
-    {
-      title: "Fireball",
-      type: "Spell",
-      manaCost: 3,
-      description: "Deal 3 damage to any target."
-    },
-    {
-      title: "Healing Light",
-      type: "Spell",
-      manaCost: 2,
-      description: "Gain 4 life."
-    },
-    
-    // Enchantment cards
-    {
-      title: "Nature's Blessing",
-      type: "Enchantment",
-      manaCost: 3,
-      description: "At the beginning of your upkeep, gain 1 life."
-    },
-    
-    // Artifact cards
-    {
-      title: "Mana Crystal",
-      type: "Artifact",
-      manaCost: 2,
-      description: "Tap: Add one mana of any color to your mana pool."
-    },
-    
-    // Land cards (typically don't have mana cost)
-    {
-      title: "Forest",
-      type: "Land",
-      description: "Tap: Add one green mana to your mana pool."
-    },
-    
-    // Cards without all properties filled
-    {
-      title: "Mysterious Mist",
-      type: "Spell",
-      description: "The effects of this spell are unknown until cast."
-    },
-    {
-      title: "Shapeshifter",
-      type: "Creature",
-      manaCost: 3,
-    }];
+  const deck = Deck
 
-  const draw: PlayingCard[] = [];
-  const hand: PlayingCard[] = [];
   // const discard: unknown[] = [];
-
-  function shuffleDeckIntoDraw() {
-    shuffleCards(deck).map(item => draw.push(item));
-    console.log("shuffle Deck into Draw")
-  }
-
-  function shuffleCards(array: PlayingCard[]) {
-    // Create a copy of the original array
-    const shuffled = [...array];
-
-    // Perform Fisher-Yates shuffle
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    return shuffled;
-  }
 
   function drawCards(drawNumber: number, modifiers = 0) {
     for (let i = 0; i < drawNumber + modifiers; i++) {
-      if (draw.length - 1 < 0) {
-        // shuffleDiscard()
+      console.log(i)
+      if (playerState.draw.length - 1 < 0) {
+          dispatch(shuffleDiscardToDraw())
         return
       }
-      hand.push(draw[0])
-      draw.shift()
+      dispatch(drawCard())
     }
+    setShouldDraw(false)
   }
+
   const setNextPhase = (i: number) => {
     activePhase = phases[i]
   }
+  
 
-
+// Fight Phases
     if (activePhase === "player_start") {
       console.log("its player Start")
-      // Need to move this logic into Redux.
-      // React is too tempermental.
-      if (turn === 0) {
-        console.log(battleStart)
-        
-        shuffleDeckIntoDraw()
-        battleStart = false;
-      }
-      console.log(hand)
+      console.log("player State:", playerState)
+      console.log("hand:", handState)
       console.log(battleStart)
       // set Mana to max
       // Apply Buffs
@@ -147,13 +66,15 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       // Remove buffs that remove
       // Do on Turn Start damage
       // Draw Cards
-      // shuffleDraw();
-      drawCards(baseDrawAmount);
+      // 
+      shouldDraw ? (drawCards(baseDrawAmount)) : null
+      
       setNextPhase(1)
       // setActivePhase(phases[1]) // Functions are happening out of order
     }
     // Might be unnecessary since its when users do stuff
     if (activePhase === "player_active") {
+      // setShouldDraw(true)
       // Set things to clickable
       console.log("It's the player turn!")
     }
@@ -187,8 +108,17 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       // decrement buffs on player
       // Discard cards
       // Discard FX
+      // setActivePhase(phases[2])
       setNextPhase(2)
     }
+    useEffect(() => {
+      if (battleStart) {
+        dispatch(loadDeck(deck));
+        dispatch(shuffleDeckToDraw());
+      }
+        battleStart = false
+        // setBattleStart(false);
+    },[])
 
   return (
     <div className={`layer-01-container ${layerContext !== 'Fight' ? 'layer-hidden' : ''}`}>
@@ -219,7 +149,7 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       </div>
       <div className="card-area">
         <div className="draw-and-mana"></div>
-        <PlayerHand hand={hand} />
+        <PlayerHand />
         <div className="discard-and-endTurn">
           <button onClick={() => endTurn()}></button>
         </div>
