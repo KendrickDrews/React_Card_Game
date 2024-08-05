@@ -1,8 +1,8 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit'
-import { fightSlice } from './index'
+import { battleSlice, playerSlice } from './index'
 
 const rootReducer = combineSlices(
-  fightSlice
+  battleSlice, playerSlice
 )
 export const store = configureStore({
   reducer: rootReducer

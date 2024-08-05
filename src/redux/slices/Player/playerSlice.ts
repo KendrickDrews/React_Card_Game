@@ -10,9 +10,8 @@ export interface PlayingCard {
   description?: string;
   // Add any other properties that a PlayingCard might have
 }
-
 // Define the structure of the player state
-export interface PlayerState {
+export interface PlayerAttributes {
   deck: PlayingCard[];
   draw: PlayingCard[];
   hand: PlayingCard[];
@@ -23,9 +22,8 @@ export interface PlayerState {
 type PlayerStateKey = 'deck' | 'draw' | 'hand' | 'discard' | 'exhaust';
 
 // Define the structure of the entire fight state
-export interface FightState {
-  player: PlayerState;
-  enemy: unknown; // You can define a specific type for enemy later if needed
+export interface PlayerState {
+  player: PlayerAttributes;
 }
 
 function shuffleCards(array: PlayingCard[]) {
@@ -41,24 +39,21 @@ function shuffleCards(array: PlayingCard[]) {
   return shuffled;
 }
 
-const fightState: FightState = {
+const initPlayerState: PlayerState = {
   player: {
     deck: [],
     draw: [],
     hand: [],
     discard: [],
     exhaust: []
-  },
-  enemy: {
-
   }
 }
 
 
 
-export const fightSlice = createSlice({
-  name: 'fight',
-  initialState: fightState,
+export const playerSlice = createSlice({
+  name: 'player',
+  initialState: initPlayerState,
   reducers: {
     loadDeck: (state, action: PayloadAction<PlayingCard[]>) => {
       state.player.deck = [...action.payload]
@@ -94,9 +89,9 @@ export const fightSlice = createSlice({
   }
 })
 
-export const { loadDeck, drawCard, shuffleDiscardToDraw, addCardToDeck, shuffleDeckToDraw } = fightSlice.actions
+export const playerState = playerSlice.actions
 
-export default fightSlice.reducer
+export default playerSlice.reducer
 
 
 // decrement: state => {
