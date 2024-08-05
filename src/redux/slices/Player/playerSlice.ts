@@ -62,6 +62,10 @@ export const playerSlice = createSlice({
       const drawnCard = state.player.draw.shift();
       state.player.hand.push(drawnCard as PlayingCard);
     },
+    discardCard: (state) => {
+      const handCard = state.player.hand.shift();
+      state.player.discard.push(handCard as PlayingCard);
+    },
     shuffleDeckToDraw: state => {
       state.player.draw.push(...state.player.deck)
       state.player.draw = shuffleCards(state.player.draw);

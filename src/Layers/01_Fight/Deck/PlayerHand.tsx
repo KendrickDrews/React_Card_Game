@@ -1,13 +1,9 @@
-
-import { useEffect } from 'react'
-// import { PlayingCard } from '../../../types/card'
+import { PlayingCard } from '../../../types/card'
 import Card from './Card'
-import { useSelector } from 'react-redux'
-import { playerStateSelector } from '../../../redux'
 
 
 
-const PlayerHand = ({hand}) => {
+const PlayerHand = ({hand}:{hand: PlayingCard[]}) => {
 
     return (
         <div className="deck">
