@@ -7,7 +7,7 @@ const PlayerHand = ({hand}:{hand: PlayingCard[]}) => {
 
     return (
         <div className="deck">
-            { hand.map((item, index) => ( <Card key={index} title={item.title} /> ))}
+            { hand.map((card, index) => ( <Card key={index} card={card} /> ))}
         </div>
     )
 }

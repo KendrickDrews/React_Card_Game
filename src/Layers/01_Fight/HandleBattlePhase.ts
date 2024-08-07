@@ -6,27 +6,30 @@ import { Deck } from './Deck/Deck'
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action >;
 
 export const handleBattlePhase = (): AppThunk => (dispatch, getState) => {
-  const { battle } = getState().battle;
-  const { player } = getState().player;
-  console.log("Yoyoyo")
+  const { battle, player } = getState();
 
-  const defaultDrawAmount = 5
+  const drawAtStartOfBattle = () => {
+      dispatch(playerState.loadDeck(Deck));
+      dispatch(playerState.shuffleDeckToDraw());
+      dispatch(battleState.setBattleStart(false))
+  }
+  const drawHand = () => {
+    for (let i = 0; i < player.drawCount; i++) {
+      if (player.draw.length == 0  ) {
+        dispatch(playerState.shuffleDiscardToDraw())
+      }
+      dispatch(playerState.drawCard())
+    }
+    dispatch(battleState.setShouldDraw(false));
+  }
 
   switch (battle.phase) {
-    case 'player_start':
+    case 'player_start': 
       if (battle.battleStart) {
-        dispatch(playerState.loadDeck(Deck));
-        dispatch(playerState.shuffleDeckToDraw());
+        drawAtStartOfBattle()
       }
-        dispatch(battleState.setBattleStart(false))
       if (battle.shouldDraw) {
-        for (let i = 0; i < defaultDrawAmount; i++) {
-          if (player.draw.length == 0  ) {
-            dispatch(playerState.shuffleDiscardToDraw())
-          }
-          dispatch(playerState.drawCard())
-        }
-        dispatch(battleState.setShouldDraw(false));
+        drawHand()
       }
       dispatch(battleState.nextBattlePhase());
       break;
@@ -35,11 +38,24 @@ export const handleBattlePhase = (): AppThunk => (dispatch, getState) => {
       dispatch(battleState.setShouldDraw(true))
       break;
     case 'player_end':
+      console.log("Player End");
       if (player.hand.length > 0) {
         for (let i =0; i < player.hand.length ; i++) {
           dispatch(playerState.discardCard())
         }
       }
+      dispatch(battleState.nextBattlePhase());
+      break;
+    case 'enemy_start':
+      console.log("Enemy Start");
+      dispatch(battleState.nextBattlePhase());
+      break;
+    case 'enemy_active':
+      console.log("Enemy Active");
+      dispatch(battleState.nextBattlePhase());
+      break;
+    case 'enemy_end':
+      console.log("Enemy End");
       dispatch(battleState.nextBattlePhase());
       break;
     // ... handle other phases

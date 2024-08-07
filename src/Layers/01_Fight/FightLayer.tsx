@@ -3,7 +3,7 @@ import cricket from '../../assets/Cricket_R.png'
 import sun from '../../assets/Sun_R.png'
 import { useEffect} from "react"
 import { useAppDispatch, useAppSelector } from "././../../redux/hooks";
-import { playerStateSelector, battleState, battleStateSelector } from "../../redux";
+import { playerStateSelector, battleState, selectBattleState } from "../../redux";
 import { handleBattlePhase } from "./HandleBattlePhase"
 
 interface LayerContext {
@@ -15,11 +15,8 @@ interface LayerContext {
 const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
 
   const dispatch = useAppDispatch();
-  const { phase } = useAppSelector(battleStateSelector);
+  const { phase } = useAppSelector(selectBattleState);
   const playerSelector = useAppSelector(playerStateSelector);
-  console.log(playerSelector)
-  console.log(phase)
-  console.log(playerSelector.hand)
 
   useEffect(() => {
     dispatch(handleBattlePhase());

@@ -1,29 +1,27 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { PayloadAction } from '@reduxjs/toolkit';
+import { PlayingCard } from '../../../types/card';
 
 // Define the PlayingCard type if you haven't already
-export interface PlayingCard {
-  title: string;
-  type: string;
-  manaCost?: number;
-  value?: number;
-  description?: string;
-  // Add any other properties that a PlayingCard might have
-}
+
 // Define the structure of the player state
-export interface PlayerAttributes {
+export interface PlayerState {
   deck: PlayingCard[];
   draw: PlayingCard[];
   hand: PlayingCard[];
   discard: PlayingCard[];
-  exhaust: PlayingCard[];  
+  exhaust: PlayingCard[]; 
+  health: number;
+  mana: number; 
+  drawCount: number;
 }
 
 type PlayerStateKey = 'deck' | 'draw' | 'hand' | 'discard' | 'exhaust';
+type IncrementalPlayerStates = 'health' | 'mana' | 'drawCount';
 
-// Define the structure of the entire fight state
-export interface PlayerState {
-  player: PlayerAttributes;
+export interface IncrementPlayerAction {
+  state: IncrementalPlayerStates;
+  amount: number;
 }
 
 function shuffleCards(array: PlayingCard[]) {
@@ -40,13 +38,14 @@ function shuffleCards(array: PlayingCard[]) {
 }
 
 const initPlayerState: PlayerState = {
-  player: {
     deck: [],
     draw: [],
     hand: [],
     discard: [],
-    exhaust: []
-  }
+    exhaust: [],
+    health: 10,
+    mana: 3,
+    drawCount: 5,
 }
 
 
@@ -56,40 +55,46 @@ export const playerSlice = createSlice({
   initialState: initPlayerState,
   reducers: {
     loadDeck: (state, action: PayloadAction<PlayingCard[]>) => {
-      state.player.deck = [...action.payload]
+      state.deck = [...action.payload]
     },
     drawCard: (state) => {
-      const drawnCard = state.player.draw.shift();
-      state.player.hand.push(drawnCard as PlayingCard);
+      const drawnCard = state.draw.shift();
+      state.hand.push(drawnCard as PlayingCard);
     },
     discardCard: (state) => {
-      const handCard = state.player.hand.shift();
-      state.player.discard.push(handCard as PlayingCard);
+      const handCard = state.hand.shift();
+      state.discard.push(handCard as PlayingCard);
     },
     shuffleDeckToDraw: state => {
-      state.player.draw.push(...state.player.deck)
-      state.player.draw = shuffleCards(state.player.draw);
+      state.draw.push(...state.deck)
+      state.draw = shuffleCards(state.draw);
     },
     shuffleDiscardToDraw: state => {
-      while (state.player.discard.length > 0) {
-        const card = state.player.discard.pop()!;
-        state.player.draw.unshift(card);
+      while (state.discard.length > 0) {
+        const card = state.discard.pop()!;
+        state.draw.unshift(card);
       }
-      state.player.draw = shuffleCards(state.player.draw);
+      state.draw = shuffleCards(state.draw);
     },
     shufflePlayerCards: (state, action: PayloadAction<PlayerStateKey>) => {
-      const arrayToShuffle = [...state.player[action.payload]];
+      const arrayToShuffle = [...state[action.payload]];
       
       for (let i = arrayToShuffle.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [arrayToShuffle[i], arrayToShuffle[j]] = [arrayToShuffle[j], arrayToShuffle[i]];
       }
     
-      state.player[action.payload] = arrayToShuffle;
+      state[action.payload] = arrayToShuffle;
     },
     addCardToDeck: (state, action: PayloadAction<PlayingCard>) => {
-      state.player.deck.push(action.payload);
+      state.deck.push(action.payload);
     },
+    increase: (state, action: PayloadAction<IncrementPlayerAction>) => {
+      state[action.payload.state] += action.payload.amount
+    },
+    decrease: (state, action: PayloadAction<IncrementPlayerAction>) => {
+      state[action.payload.state] -= action.payload.amount
+    }
   }
 })
 
