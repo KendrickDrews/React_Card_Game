@@ -13,7 +13,7 @@ export interface IncrementEnemyAction {
   amount: number;
 }
 
-const enemyState: EnemyState = {
+const enemyInitialState: EnemyState = {
   health: 15,
   block: 0
 }
@@ -22,7 +22,7 @@ const enemyState: EnemyState = {
 
 export const enemySlice = createSlice({
   name: 'enemy',
-  initialState: enemyState,
+  initialState: enemyInitialState,
   reducers: {
     increase: (state, action: PayloadAction<IncrementEnemyAction>) => {
       state[action.payload.state] += action.payload.amount

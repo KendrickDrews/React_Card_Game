@@ -34,11 +34,15 @@ export const handleBattlePhase = (): AppThunk => (dispatch, getState) => {
       dispatch(battleState.nextBattlePhase());
       break;
     case 'player_active':
+      
       // Maybe do nothing here, as this is when the player takes actions
       dispatch(battleState.setShouldDraw(true))
       break;
     case 'player_end':
       console.log("Player End");
+      if (battle.activeCard) {
+        dispatch(battleState.setActiveCard("none"))
+      }
       if (player.hand.length > 0) {
         for (let i =0; i < player.hand.length ; i++) {
           dispatch(playerState.discardCard())

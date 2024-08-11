@@ -100,7 +100,12 @@
 }
 .discard-and-endTurn {
     display:flex;
+    flex-direction: column;
     background-color:pink;
     height: 100%;
     width: 12.5%;
+}
+.end-turn-button {
+    height: 40px;
+
 }

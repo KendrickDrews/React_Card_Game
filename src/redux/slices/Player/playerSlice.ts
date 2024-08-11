@@ -65,6 +65,23 @@ export const playerSlice = createSlice({
       const handCard = state.hand.shift();
       state.discard.push(handCard as PlayingCard);
     },
+    discardSpecificCard: (state, action: PayloadAction<number>) => {
+  
+      // Find the index of the card in the hand
+      const cardIndex = state.hand.findIndex(card => card.id === action.payload);
+      
+      if (cardIndex !== -1) {
+        // Remove the card from the hand
+        const [discardedCard] = state.hand.splice(cardIndex, 1);
+        
+        // Add the card to the discard pile
+        state.discard.push(discardedCard);
+        
+        console.log(`Card ${action.payload} discarded from hand`);
+      } else {
+        console.warn(`Card ${action.payload} not found in hand`);
+      }
+    },
     shuffleDeckToDraw: state => {
       state.draw.push(...state.deck)
       state.draw = shuffleCards(state.draw);

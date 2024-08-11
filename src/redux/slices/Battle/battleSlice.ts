@@ -52,8 +52,13 @@ export const battleSlice = createSlice({
     setShouldDraw: (state, action: PayloadAction<boolean>) => {
       state.shouldDraw = action.payload;
     },
-    setActiveCard: (state, action: PayloadAction<PlayingCard | null>) => {
-      state.activeCard = action.payload
+    setActiveCard: (state, action: PayloadAction<PlayingCard | "none">) => {
+      if ( action.payload === 'none') {
+        state.activeCard = initBattleState.activeCard
+      } else {
+        state.activeCard = action.payload
+      }
+      
     },
     useCard: (state, action: PayloadAction<boolean>) => {
       state.useCard = action.payload
