@@ -3,11 +3,11 @@ import Card from './Card'
 
 
 
-const PlayerHand = ({hand}:{hand: PlayingCard[]}) => {
+const PlayerHand = ({hand, mana}:{hand: PlayingCard[], mana: number}) => {
 
     return (
-        <div className="deck">
-            { hand.map((card, index) => ( <Card key={index} card={card} /> ))}
+        <div className="hand">
+            { hand.map((card, index) => ( <Card key={index} card={card} mana={mana} /> ))}
         </div>
     )
 }

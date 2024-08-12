@@ -1,9 +1,9 @@
 import  PlayerHand  from "./Deck/PlayerHand"
 import cricket from '../../assets/Cricket_R.png'
 import sun from '../../assets/Sun_R.png'
-import { useEffect} from "react"
+import { useEffect, useState} from "react"
 import { useAppDispatch, useAppSelector } from "././../../redux/hooks";
-import { battleState, playerState, selectBattleState, selectEnemyState, selectPlayerState } from "../../redux";
+import { battleState, playerState, enemyState, selectBattleState, selectEnemyState, selectPlayerState } from "../../redux";
 import { handleBattlePhase } from "./HandleBattlePhase"
 
 interface LayerContext {
@@ -19,9 +19,14 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
   const playerSelector = useAppSelector(selectPlayerState);
   const enemySelector = useAppSelector(selectEnemyState)
 
+  const [currentMana, setMana] = useState(0)
+
   useEffect(() => {
     dispatch(handleBattlePhase());
-  }, [dispatch, phase]);
+    if (phase === "player_active") {
+      setMana(playerSelector.mana)
+    }
+  }, [dispatch, phase, playerSelector.mana]);
 
   const handleEndTurn = () => {
     dispatch(battleState.nextBattlePhase());
@@ -44,6 +49,7 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
        switch (key) {
          case 'damage':
            console.log('damage: ', value ) 
+           dispatch(enemyState.decrease({state: 'health', amount: value as number}))
            break;
          case 'heal':
           dispatch(playerState.increase({state: 'health', amount: value as number}))
@@ -55,10 +61,12 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
            console.log(`Unknown effect type: ${key}`);
        }
      }
-     dispatch(playerState.discardSpecificCard(activeCard.id))
-     dispatch(battleState.setActiveCard("none"))
-     // Loop through Card Effect and Do stuff
-     dispatch(battleState.useCard(false))
+    //  dispatch(playerSelector.decrease())
+      setMana(currentMana => currentMana - activeCard.manaCost)
+      dispatch(playerState.discardSpecificCard(activeCard.id))
+      dispatch(battleState.setActiveCard("none"))
+      // Loop through Card Effect and Do stuff
+      dispatch(battleState.useCard(false))
    }
   }, [activeCard, dispatch, useCard])
   
@@ -81,22 +89,27 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       <div className="artifact-bar"></div>
       <div className="battle-stations">
         <div className="station-player">
-          <div className="unit">
-            <img width="500" style={{aspectRatio: "auto 150 / 108"}} src={cricket} />
+          <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+            <img width="500" className="unit-img"  src={cricket} />
             <div className="unit-health">{playerSelector.health}</div>
           </div>
         </div>
         <div className="station-enemy">
-          <div className="unit">
-            <img width="500" style={{aspectRatio: "auto 150 / 108", transform: "scaleX(-1)"}} src={sun} />
+          <div className={`unit ${enemySelector.health <= 0 ? 'dead': ''}`}>
+            <img width="500" className="unit-img flipped-horizontal" src={sun} />
             
             <div className="unit-health">{enemySelector.health}</div>
           </div>
         </div>
       </div>
       <div className="card-area">
-        <div className="draw-and-mana"></div>
-        <PlayerHand hand={playerSelector.hand}/>
+        <div className="draw-and-mana">
+          <div className="mana">{ currentMana }</div>
+          <div className="draw">{ playerSelector.draw.length + "/" + playerSelector.deck.length }</div>
+      </div>
+        <PlayerHand hand={playerSelector.hand} mana={currentMana}/>
+        <button disabled={activeCard != null ? false : true} className='play-card-button' onClick={() => dispatch(battleState.useCard(true))} > use card?</button>
+        
         <div className="discard-and-endTurn">
           <div className="discard-container">{playerSelector.discard.length}</div>
           <button className="end-turn-button" onClick={() => handleEndTurn()}> End Turn </button>

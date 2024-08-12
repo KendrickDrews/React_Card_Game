@@ -33,7 +33,7 @@ export const enemySlice = createSlice({
   }
 })
 
-export const enemy = enemySlice.actions
+export const enemyState = enemySlice.actions
 
 export default enemySlice.reducer
 

@@ -2,7 +2,7 @@ import { PlayingCard } from "../../../types/card";
 
 export const Deck = [
   {
-    id: 0,
+      id: 0,
       title: "Goblin Scout",
       type: "Creature",
       manaCost: 1,
@@ -11,7 +11,7 @@ export const Deck = [
       effect: { damage: 1 }
   },
   {
-    id: 1,
+      id: 1,
       title: "Elven Archer",
       type: "Creature",
       manaCost: 2,
@@ -20,7 +20,7 @@ export const Deck = [
       effect: { damage: 1}
   },
   {
-    id: 2,
+      id: 2,
       title: "Stone Golem",
       type: "Creature",
       manaCost: 4,
@@ -38,7 +38,7 @@ export const Deck = [
       effect: { damage: 3 }
   },
   {
-id: 4,
+      id: 4,
       title: "Healing Light",
       type: "Spell",
       manaCost: 2,
@@ -47,7 +47,7 @@ id: 4,
       effect: { heal: 4 }
   },
   {
-id: 5,
+      id: 5,
       title: "Nature's Blessing",
       type: "Enchantment",
       manaCost: 3,
@@ -56,7 +56,7 @@ id: 5,
       effect: { heal: 1 }
   },
   {
-id: 6,
+      id: 6,
       title: "Mana Crystal",
       type: "Artifact",
       manaCost: 2,
@@ -65,7 +65,7 @@ id: 6,
       effect: { addMana: 1 }
   },
   {
-id: 7,
+      id: 7,
       title: "Forest",
       type: "Land",
       manaCost: 2,
@@ -74,7 +74,7 @@ id: 7,
       effect: { addMana: 1 }
   },
   {
-id: 8,
+      id: 8,
       title: "Mysterious Mist",
       type: "Spell",
       manaCost: 2,
@@ -83,12 +83,12 @@ id: 8,
       effect: { damage: 1 }
   },
   {
-id: 9,
+      id: 9,
       title: "Shapeshifter",
       type: "Creature",
       manaCost: 3,
       value: 4,
       description: "The effects of this spell are unknown until cast.",
-      effect: { heal: 4 }
+      effect: { damage: 4 }
   }
 ] as PlayingCard[]

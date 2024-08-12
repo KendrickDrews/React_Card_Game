@@ -5,20 +5,28 @@ import { battleState, activeCardSelector } from "../../../redux"
 import { useSelector } from "react-redux"
 
   
-const Card = ({card}:{card: PlayingCard}) => {
+const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
   const dispatch = useAppDispatch()
   const selectedCard = useSelector(activeCardSelector)
 
+  const toggleActiveOnClick = (card: PlayingCard) => {
+    if (mana < card.manaCost) return
+    if (selectedCard?.id === card.id) {
+      dispatch(battleState.setActiveCard("none"))
+    } else {
+      
+      dispatch(battleState.setActiveCard(card))
+    }
+  }
+
     return (
-      <div className={`card ${card === selectedCard ? 'selected' : ''}`} onClick={() => dispatch(battleState.setActiveCard(card))}>
+      <div className={`card ${card === selectedCard ? 'selected' : ''} ${card.manaCost > mana ? 'unplayable' : ''} `} onClick={() =>toggleActiveOnClick(card)}>
         <div>title: {card.title}</div>
         <div>type: {card.type}</div>
         <div>mana cost: {card.manaCost}</div>
         <div>value: {card.value}</div>
         <div>description: {card.description}</div>
-        { card === selectedCard && 
-          <button className='play-card-button' onClick={() => dispatch(battleState.useCard(true))} > use card?</button>
-        }
+        
       </div>
     )
   }

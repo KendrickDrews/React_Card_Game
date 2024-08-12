@@ -42,6 +42,7 @@
 }
 .battle-stations > div {
     display:flex;
+    justify-content: center;
     height: 100%;
     width: 50%;
     box-sizing: border-box;
@@ -59,16 +60,31 @@
 }
 .draw-and-mana {
     display: flex;
+    justify-content: center;
+    flex-direction: column;
     height: 100%;
     background-color: bisque;
     width: 12.5%;
 }
-.deck {
+.draw {
+    height: 70%;
     display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.mana {
+    height: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.hand {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
     background-color:aliceblue;
     height: 100%;
     width: 75%;
-    justify-content: space-around;
     align-items: center;
 }
 .card {
@@ -92,11 +108,16 @@
 .card.selected {
     bottom: 100px;
 }
+.card.unplayable {
+    background-color: gainsboro;
+    border: 1px solid brown;
+}
 .play-card-button {
     position: absolute;
-    width: 100%;
-    height: 36px;
-    bottom: -50px;
+    width: 200px;
+    height: 42px;
+    left: calc(50% - 100px);
+    bottom: 31px;
 }
 .discard-and-endTurn {
     display:flex;
@@ -108,4 +129,19 @@
 .end-turn-button {
     height: 40px;
 
+}
+.unit {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: all 0.3s ease-in-out;
+}
+.unit.dead > img {
+    transform: rotate(180deg);
+}
+.unit-img {
+    aspect-ratio: "auto 150 / 108"
+}
+.flipped-horizontal {
+    transform: scaleX(-1);
 }

@@ -2,7 +2,7 @@ export interface PlayingCard {
     id: number;
     title: string;
     type?: string;
-    manaCost?: number;
+    manaCost: number;
     value?: number;
     description?: string;
     effect: CardEffects;
