@@ -21,11 +21,17 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
 
     return (
       <div className={`card ${card === selectedCard ? 'selected' : ''} ${card.manaCost > mana ? 'unplayable' : ''} `} onClick={() =>toggleActiveOnClick(card)}>
+        <div className="card-mana-container">
+          <div className="card-mana-value">
+            { card.manaCost }
+          </div>
+        </div>
         <div>title: {card.title}</div>
-        <div>type: {card.type}</div>
-        <div>mana cost: {card.manaCost}</div>
-        <div>value: {card.value}</div>
+
         <div>description: {card.description}</div>
+
+        
+        <div>type: {card.type}</div>
         
       </div>
     )

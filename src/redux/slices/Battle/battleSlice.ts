@@ -39,6 +39,8 @@ export const battleSlice = createSlice({
     setBattleStart: (state, action: PayloadAction<boolean>) => {
       state.battleStart = action.payload
     },
+    increaseTurn: state => { state.turn += 1 },
+    resetTurn: state => { state.turn = 0 },
     nextBattlePhase: (state) => {
       const currentPhaseIndex = battlePhases.indexOf(state.phase);
       const nextPhaseIndex = (currentPhaseIndex + 1) % battlePhases.length;

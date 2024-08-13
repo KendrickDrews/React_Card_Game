@@ -56,6 +56,9 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
            console.log('heal: ', value);
            // Apply healing logic here
            break;
+        case 'addMana':
+          setMana(m => m += value as number)
+        break;
          // Add more cases for other effect types
          default:
            console.log(`Unknown effect type: ${key}`);
@@ -104,15 +107,31 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       </div>
       <div className="card-area">
         <div className="draw-and-mana">
-          <div className="mana">{ currentMana }</div>
-          <div className="draw">{ playerSelector.draw.length + "/" + playerSelector.deck.length }</div>
+          <div className="mana">
+            <div className="mana-container">
+              <div className="mana-value">
+                { currentMana }
+              </div>
+            </div>
+          </div>
+          <div className="draw">
+            <div className="draw-placeholder">
+              { playerSelector.draw.length + "/" + playerSelector.deck.length }
+            </div>
+          </div>
       </div>
         <PlayerHand hand={playerSelector.hand} mana={currentMana}/>
         <button disabled={activeCard != null ? false : true} className='play-card-button' onClick={() => dispatch(battleState.useCard(true))} > use card?</button>
         
         <div className="discard-and-endTurn">
-          <div className="discard-container">{playerSelector.discard.length}</div>
-          <button className="end-turn-button" onClick={() => handleEndTurn()}> End Turn </button>
+          <div className="discard-container">
+            <div className="discard-placeholder">
+              {playerSelector.discard.length}
+            </div>
+          </div>
+          <div className="end-turn-container">
+            <button className="end-turn-button" onClick={() => handleEndTurn()}> End Turn </button>
+          </div>
         </div>
       </div>
     </div>

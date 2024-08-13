@@ -68,7 +68,7 @@ export const Deck = [
       id: 7,
       title: "Forest",
       type: "Land",
-      manaCost: 2,
+      manaCost: 0,
       value: 4,
       description: "Tap: Add one green mana to your mana pool.",
       effect: { addMana: 1 }

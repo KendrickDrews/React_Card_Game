@@ -56,10 +56,12 @@ export const handleBattlePhase = (): AppThunk => (dispatch, getState) => {
       break;
     case 'enemy_active':
       console.log("Enemy Active");
+      dispatch(playerState.decrease({state: "health", amount: 1}))
       dispatch(battleState.nextBattlePhase());
       break;
     case 'enemy_end':
       console.log("Enemy End");
+      dispatch(battleState.increaseTurn())
       dispatch(battleState.nextBattlePhase());
       break;
     // ... handle other phases
