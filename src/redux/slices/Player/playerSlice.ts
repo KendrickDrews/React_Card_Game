@@ -65,6 +65,14 @@ export const playerSlice = createSlice({
       const handCard = state.hand.shift();
       state.discard.push(handCard as PlayingCard);
     },
+    toggleCardDiscardProperty: (state, action: PayloadAction<{id: number, discard: boolean}>) => {
+      // Find the index of the card in the hand
+      const cardIndex = state.hand.findIndex(card => card.id === action.payload.id);
+
+      if (cardIndex !== -1) {
+        state.hand[cardIndex].discard = action.payload.discard;
+      }
+    },
     discardSpecificCard: (state, action: PayloadAction<number>) => {
   
       // Find the index of the card in the hand
@@ -118,11 +126,3 @@ export const playerSlice = createSlice({
 export const playerState = playerSlice.actions
 
 export default playerSlice.reducer
-
-
-// decrement: state => {
-//   state.value -= 1
-// },
-// incrementByAmount: (state, action) => {
-//   state.value += action.payload
-// }

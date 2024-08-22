@@ -2,6 +2,7 @@ import { PlayingCard } from "../../../types/card";
 
 export const Deck = [
   {
+      discard: false,
       id: 0,
       title: "Goblin Scout",
       type: "Creature",
@@ -11,6 +12,7 @@ export const Deck = [
       effect: { damage: 1 }
   },
   {
+      discard: false,
       id: 1,
       title: "Elven Archer",
       type: "Creature",
@@ -20,6 +22,7 @@ export const Deck = [
       effect: { damage: 1}
   },
   {
+      discard: false,
       id: 2,
       title: "Stone Golem",
       type: "Creature",
@@ -29,7 +32,8 @@ export const Deck = [
       effect: { damage: 5 }
   },
   {
-    id: 3,
+    discard: false,
+      id: 3,
       title: "Fireball",
       type: "Spell",
       manaCost: 3,
@@ -38,6 +42,7 @@ export const Deck = [
       effect: { damage: 3 }
   },
   {
+      discard: false,
       id: 4,
       title: "Healing Light",
       type: "Spell",
@@ -47,6 +52,7 @@ export const Deck = [
       effect: { heal: 4 }
   },
   {
+      discard: false,
       id: 5,
       title: "Nature's Blessing",
       type: "Enchantment",
@@ -56,6 +62,7 @@ export const Deck = [
       effect: { heal: 1 }
   },
   {
+      discard: false,
       id: 6,
       title: "Mana Crystal",
       type: "Artifact",
@@ -65,6 +72,7 @@ export const Deck = [
       effect: { addMana: 1 }
   },
   {
+      discard: false,
       id: 7,
       title: "Forest",
       type: "Land",
@@ -74,6 +82,7 @@ export const Deck = [
       effect: { addMana: 1 }
   },
   {
+      discard: false,
       id: 8,
       title: "Mysterious Mist",
       type: "Spell",
@@ -83,6 +92,7 @@ export const Deck = [
       effect: { damage: 1 }
   },
   {
+      discard: false,
       id: 9,
       title: "Shapeshifter",
       type: "Creature",

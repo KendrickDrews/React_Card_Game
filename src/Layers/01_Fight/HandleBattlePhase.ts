@@ -5,22 +5,36 @@ import { Action, ThunkAction } from '@reduxjs/toolkit';
 import { Deck } from './Deck/Deck'
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action >;
 
-export const handleBattlePhase = (): AppThunk => (dispatch, getState) => {
+export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
+  
   const { battle, player } = getState();
+  // Utility for waiting by MS
+  const delay = (seconds: number) => new Promise(resolve => setTimeout(resolve, (seconds * 1000)));
 
   const drawAtStartOfBattle = () => {
       dispatch(playerState.loadDeck(Deck));
       dispatch(playerState.shuffleDeckToDraw());
       dispatch(battleState.setBattleStart(false))
   }
-  const drawHand = () => {
+
+  const drawHand = async () => {
     for (let i = 0; i < player.drawCount; i++) {
-      if (player.draw.length == 0  ) {
-        dispatch(playerState.shuffleDiscardToDraw())
+      if (player.draw.length === 0) {
+        dispatch(playerState.shuffleDiscardToDraw());
+        // Optional: Add a delay after shuffling
+        // await delay(.25);
       }
-      dispatch(playerState.drawCard())
+      dispatch(playerState.drawCard());
+      // Wait for 1 second before the next iteration
+      await delay(.5);
     }
     dispatch(battleState.setShouldDraw(false));
+  };
+  const discardhand = async () => {
+    for (let i = player.hand.length - 1; i >= 0; i--) {
+      dispatch(playerState.toggleCardDiscardProperty({id: player.hand[i].id, discard: true}))
+      await delay(.25)
+    }
   }
 
   switch (battle.phase) {
@@ -29,25 +43,27 @@ export const handleBattlePhase = (): AppThunk => (dispatch, getState) => {
         drawAtStartOfBattle()
       }
       if (battle.shouldDraw) {
-        drawHand()
+        await drawHand()
       }
       dispatch(battleState.nextBattlePhase());
       break;
     case 'player_active':
-      
       // Maybe do nothing here, as this is when the player takes actions
-      dispatch(battleState.setShouldDraw(true))
+      
+      
       break;
     case 'player_end':
+
       console.log("Player End");
+      dispatch(battleState.setShouldDraw(true))
+
       if (battle.activeCard) {
         dispatch(battleState.setActiveCard("none"))
       }
       if (player.hand.length > 0) {
-        for (let i =0; i < player.hand.length ; i++) {
-          dispatch(playerState.discardCard())
-        }
+        await discardhand()
       }
+      
       dispatch(battleState.nextBattlePhase());
       break;
     case 'enemy_start':

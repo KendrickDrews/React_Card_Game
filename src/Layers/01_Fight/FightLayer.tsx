@@ -11,7 +11,6 @@ interface LayerContext {
   setLayerContext: (value: string) => void;
 }
 
-
 const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
 
   const dispatch = useAppDispatch();
@@ -66,7 +65,7 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
      }
     //  dispatch(playerSelector.decrease())
       setMana(currentMana => currentMana - activeCard.manaCost)
-      dispatch(playerState.discardSpecificCard(activeCard.id))
+      // dispatch(playerState.discardSpecificCard(activeCard.id))
       dispatch(battleState.setActiveCard("none"))
       // Loop through Card Effect and Do stuff
       dispatch(battleState.useCard(false))

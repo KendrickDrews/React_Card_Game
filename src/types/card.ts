@@ -6,6 +6,7 @@ export interface PlayingCard {
     value?: number;
     description?: string;
     effect: CardEffects;
+    discard: boolean;
   }
   
 export type EffectKey = 'damage' | 'heal' | 'haste' | 'defender' | 'addMana' | 'anyColor' | string;
