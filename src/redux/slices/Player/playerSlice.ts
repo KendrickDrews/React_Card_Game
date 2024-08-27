@@ -45,7 +45,7 @@ const initPlayerState: PlayerState = {
     exhaust: [],
     health: 10,
     mana: 3,
-    drawCount: 5,
+    drawCount: 3,
 }
 
 
@@ -76,6 +76,8 @@ export const playerSlice = createSlice({
     discardSpecificCard: (state, action: PayloadAction<number>) => {
   
       // Find the index of the card in the hand
+      // Could probably skip the findIndex part
+      // If the card knows its index you can be sure its targeting its own index
       const cardIndex = state.hand.findIndex(card => card.id === action.payload);
       
       if (cardIndex !== -1) {
