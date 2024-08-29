@@ -71,6 +71,7 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       dispatch(battleState.useCard(false))
    }
   }, [activeCard, dispatch, useCard])
+
   
 
   return (

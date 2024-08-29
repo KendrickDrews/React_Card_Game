@@ -12,10 +12,12 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
   const dispatch = useAppDispatch()
   const selectedCard = useSelector(activeCardSelector)
 
+
   const {useCard, activeCard } = useAppSelector(selectBattleState);
-  
   const [animationState, setAnimationState] = useState('initial');
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [top, setTop] = useState(75)
+  const [left, setLeft] = useState(303)
 
   const handleClick = (animation: string) => {
     setAnimationState(animation);
@@ -48,6 +50,12 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
     }
   }
 
+  const moveUpAndLeft = () => {
+    setTop(prevTop => prevTop - 2);
+    setLeft(prevLeft => prevLeft + 25);
+
+  }
+
   // UseCard
   useEffect(() => {
     if (useCard) {
@@ -71,13 +79,17 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
     if (card.discard) {
       setAnimationState('discardCard');
     }
-  }, [card.discard]);
+  }, [card]);
 
 
     return (
       <div 
+        style={{
+          top: `${top}%`,
+          left: `${left}px`,
+        }}
         onAnimationEnd={() => handleAnimationEnd()} 
-        className={`card ${card === selectedCard ? 'selected' : ''} ${card.manaCost > mana ? 'unplayable' : ''}
+        className={`card ${card === selectedCard ? 'selected' : ''} ${card?.manaCost > mana ? 'unplayable' : ''}
           ${animationState === 'draw' ? 'animate-draw' : ''}
           ${animationState === 'useCard' ? 'animate-use-card' : ''}
           ${animationState === 'discardCard' ? 'animate-use-card' : ''} `} 
@@ -93,9 +105,7 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
 
         
         <div>type: {card.type}</div>
-        <style>{`
-        
-      `}</style>
+        <button onClick={moveUpAndLeft}>Move Up and Left </button>
       </div>
       
     )

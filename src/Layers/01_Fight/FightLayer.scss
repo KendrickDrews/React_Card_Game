@@ -148,10 +148,11 @@
     transition: all 0.2s ease-in-out;
 }
 .card:hover {
-    bottom: 20px;
+    top: 72%;
 }
 .card.selected {
-    bottom: 100px;
+    top: 65%;
+    left: 500px;
 }
 .card.unplayable {
     background-color: gainsboro;
