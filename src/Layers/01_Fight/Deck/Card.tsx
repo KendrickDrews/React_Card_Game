@@ -1,17 +1,17 @@
 
 import { PlayingCard } from "../../../types/card"
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks"
-import { battleState, activeCardSelector, playerState, selectBattleState } from "../../../redux"
+import { battleState, activeCardSelector, playerState, selectBattleState, selectPlayerState } from "../../../redux"
 import { useSelector } from "react-redux"
 import { useEffect, useState } from "react"
 import './CardAnimation.scss'
 
   
-const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
+const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: number}) => {
   
   const dispatch = useAppDispatch()
   const selectedCard = useSelector(activeCardSelector)
-
+  const playerSelector = useSelector(selectPlayerState)
 
   const {useCard, activeCard } = useAppSelector(selectBattleState);
   const [animationState, setAnimationState] = useState('initial');
@@ -51,11 +51,13 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
   }
 
   const moveUpAndLeft = () => {
-    setTop(prevTop => prevTop - 2);
+    setTop(prevTop => prevTop - 4);
     setLeft(prevLeft => prevLeft + 25);
 
   }
-
+  const hoverEnter = () => {
+    setTop(prevTop => prevTop - 2);
+  }
   // UseCard
   useEffect(() => {
     if (useCard) {
@@ -81,6 +83,12 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
     }
   }, [card]);
 
+  // Adjust Position of Elements based on Number of cards in hand
+  useEffect(() => {
+    setLeft(() => 303 + (index * playerSelector.hand.length * 55))
+  }, [playerSelector.hand, index]);
+
+    // To make the hover better, give the card container a child container which moves up on hover
 
     return (
       <div 
@@ -88,6 +96,8 @@ const Card = ({card, mana}:{card: PlayingCard, mana: number}) => {
           top: `${top}%`,
           left: `${left}px`,
         }}
+        onMouseEnter={() => setTop(prevTop => prevTop - 2)}
+        onMouseLeave={() => setTop(prevTop => prevTop + 2)}
         onAnimationEnd={() => handleAnimationEnd()} 
         className={`card ${card === selectedCard ? 'selected' : ''} ${card?.manaCost > mana ? 'unplayable' : ''}
           ${animationState === 'draw' ? 'animate-draw' : ''}
