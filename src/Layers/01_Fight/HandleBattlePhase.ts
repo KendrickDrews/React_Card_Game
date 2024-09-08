@@ -33,7 +33,7 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
   const discardhand = async () => {
     for (let i = player.hand.length - 1; i >= 0; i--) {
       dispatch(playerState.toggleCardDiscardProperty({id: player.hand[i].id, discard: true}))
-      await delay(.5)
+      await delay(.5 * (1/player.hand.length))
     }
   }
 

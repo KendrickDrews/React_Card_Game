@@ -3,7 +3,7 @@ import { PlayingCard } from "../../../types/card"
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks"
 import { battleState, activeCardSelector, playerState, selectBattleState, selectPlayerState } from "../../../redux"
 import { useSelector } from "react-redux"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import './CardAnimation.scss'
 
   
@@ -16,8 +16,12 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
   const {useCard, activeCard } = useAppSelector(selectBattleState);
   const [animationState, setAnimationState] = useState('initial');
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [top, setTop] = useState(75)
+  const [top, setTop] = useState(65)
   const [left, setLeft] = useState(303)
+
+  const elementRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [hovering, setHovering] = useState(false)
 
   const handleClick = (animation: string) => {
     setAnimationState(animation);
@@ -50,13 +54,13 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
     }
   }
 
-  const moveUpAndLeft = () => {
-    setTop(prevTop => prevTop - 4);
-    setLeft(prevLeft => prevLeft + 25);
-
+  const handleMouseEnter = () => {
+    setTop(prevTop => prevTop - 2)
+    setHovering(true)
   }
-  const hoverEnter = () => {
-    setTop(prevTop => prevTop - 2);
+  const handleMouseLeave = () => {
+    setTop(prevTop => prevTop + 2)
+    setHovering(false)
   }
   // UseCard
   useEffect(() => {
@@ -85,19 +89,36 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
 
   // Adjust Position of Elements based on Number of cards in hand
   useEffect(() => {
-    setLeft(() => 303 + (index * playerSelector.hand.length * 55))
+    const handSize = playerSelector.hand.length;
+    const centerIndex = (handSize - 1) / 2;
+    setLeft(index - centerIndex);
   }, [playerSelector.hand, index]);
 
-    // To make the hover better, give the card container a child container which moves up on hover
+  
+  useEffect(() => {
+    const updateWidth = () => {
+      if (elementRef.current) {
+        const { width } = elementRef.current.getBoundingClientRect();
+        setWidth(width);
+      }
+    };
 
+    updateWidth(); // Initial measurement
+    window.addEventListener('resize', updateWidth); // Update on window resize
+
+    return () => window.removeEventListener('resize', updateWidth); // Cleanup
+  }, []);
+  // To make the hover better, give the card container a child container which moves up on hover
     return (
       <div 
+        ref={elementRef}
         style={{
           top: `${top}%`,
-          left: `${left}px`,
+          left: `calc(50% - ${width/2}px - ${(left) * width/1.25}px)`,
+          zIndex: `${(100 + (playerSelector.hand.length/2 - index) * 10) * (hovering ? 100 : 1)}`
         }}
-        onMouseEnter={() => setTop(prevTop => prevTop - 2)}
-        onMouseLeave={() => setTop(prevTop => prevTop + 2)}
+        onMouseEnter={() => handleMouseEnter()}
+        onMouseLeave={() => handleMouseLeave()}
         onAnimationEnd={() => handleAnimationEnd()} 
         className={`card ${card === selectedCard ? 'selected' : ''} ${card?.manaCost > mana ? 'unplayable' : ''}
           ${animationState === 'draw' ? 'animate-draw' : ''}
@@ -115,7 +136,6 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
 
         
         <div>type: {card.type}</div>
-        <button onClick={moveUpAndLeft}>Move Up and Left </button>
       </div>
       
     )
