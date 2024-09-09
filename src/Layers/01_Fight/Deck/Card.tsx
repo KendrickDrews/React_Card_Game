@@ -86,7 +86,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
       setAnimationState('discardCard');
     }
   }, [card]);
-
+  
   // Adjust Position of Elements based on Number of cards in hand
   useEffect(() => {
     const handSize = playerSelector.hand.length;
