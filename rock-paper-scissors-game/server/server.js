@@ -34,7 +34,8 @@ app.post('/game', (req, res) => {
         health: { '1': 3, '2': 3 },
         status: 'waiting',
         roundResult: null,
-        roundNumber: 1
+        roundNumber: 1,
+        winner: null
     });
     res.json({ gameId });
 });
@@ -58,6 +59,10 @@ app.post('/game/:id/join/:player', (req, res) => {
         return res.status(404).json({ error: 'Game not found' });
     }
 
+    if (game.status === 'game_over') {
+        return res.status(400).json({ error: 'Game is already finished' });
+    }
+
     if (game.players.length >= 2 && !game.players.includes(player)) {
         console.log(`Game ${gameId} is full`);
         return res.status(400).json({ error: 'Game is full' });
@@ -67,7 +72,7 @@ app.post('/game/:id/join/:player', (req, res) => {
         game.players.push(player);
     }
 
-    if (game.players.length === 2) {
+    if (game.players.length === 2 && game.status === 'waiting') {
         game.status = 'round_active';
     }
 
@@ -83,6 +88,10 @@ app.post('/game/:id/choice', (req, res) => {
     const game = games.get(gameId);
     if (!game) {
         return res.status(404).json({ error: 'Game not found' });
+    }
+
+    if (game.status === 'game_over') {
+        return res.status(400).json({ error: 'Game is already finished' });
     }
 
     game.choices[player] = choice;
@@ -117,10 +126,10 @@ function calculateRound(game) {
         (choice1 === 'paper' && choice2 === 'rock') ||
         (choice1 === 'scissors' && choice2 === 'paper')
     ) {
-        game.health['2']--;
+        game.health['2'] = Math.max(0, game.health['2'] - 1);
         game.roundResult = 'player1';
     } else {
-        game.health['1']--;
+        game.health['1'] = Math.max(0, game.health['1'] - 1);
         game.roundResult = 'player2';
     }
 
@@ -128,6 +137,7 @@ function calculateRound(game) {
 
     if (game.health['1'] === 0 || game.health['2'] === 0) {
         game.status = 'game_over';
+        game.winner = game.health['1'] > 0 ? '1' : '2';
     } else {
         // Set a timeout to start the next round
         setTimeout(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 
 const API_URL = '/api';
@@ -11,21 +11,45 @@ function App() {
     const [error, setError] = useState(null)
 
     useEffect(() => {
+        checkGameExistence();
+    }, [])
+
+    const checkGameExistence = async () => {
         // Parse URL parameters
         const params = new URLSearchParams(window.location.search)
         const gameIdParam = params.get('gameId')
         const playerParam = params.get('player')
 
         if (gameIdParam) {
-            console.log('Game ID found in URL:', gameIdParam)
-            setGameId(gameIdParam)
-            if (playerParam) {
-                console.log('Player number found in URL:', playerParam)
-                setPlayer(playerParam)
-                joinGame(gameIdParam, playerParam)
+            try {
+                const response = await axios.get(`${API_URL}/game/${gameIdParam}/exists`)
+                if (response.data.exists) {
+                    console.log('Game ID found in URL:', gameIdParam)
+                    setGameId(gameIdParam)
+                    if (playerParam) {
+                        console.log('Player number found in URL:', playerParam)
+                        setPlayer(playerParam)
+                        joinGame(gameIdParam, playerParam)
+                    }
+                } else {
+                    console.log('Game not found, clearing URL parameters')
+                    clearUrlParameters()
+                }
+            } catch (error) {
+                console.error('Error checking game existence:', error)
+                clearUrlParameters()
             }
         }
-    }, [])
+    }
+
+    const clearUrlParameters = () => {
+        window.history.pushState({}, '', window.location.pathname)
+        setGameId(null)
+        setPlayer(null)
+        setGameState(null)
+        setChoice(null)
+        setError(null)
+    }
 
     useEffect(() => {
         if (gameId) {
@@ -61,7 +85,12 @@ function App() {
             console.log('Joined game successfully. Player:', playerNumber)
         } catch (error) {
             console.error('Error joining game:', error)
-            setError('Error joining game. Please check the game ID and try again.')
+            if (error.response && error.response.status === 400 && error.response.data.error === 'Game is already finished') {
+                setError('This game has already finished. Please start a new game.')
+            } else {
+                setError('Error joining game. Please check the game ID and try again.')
+            }
+            clearUrlParameters()
         }
     }
 
@@ -77,10 +106,15 @@ function App() {
         } catch (error) {
             console.error('Error fetching game state:', error)
             setError('Error fetching game state. The game might not exist.')
+            clearUrlParameters()
         }
     }
 
     const makeChoice = async (selectedChoice) => {
+        if (gameState.status !== 'round_active') {
+            console.log('Cannot make a choice. Game is not in active round state.')
+            return
+        }
         setChoice(selectedChoice)
         try {
             await axios.post(`${API_URL}/game/${gameId}/choice`, {
@@ -89,7 +123,12 @@ function App() {
             })
         } catch (error) {
             console.error('Error making choice:', error)
-            setError('Error making choice. Please try again.')
+            if (error.response && error.response.status === 400 && error.response.data.error === 'Game is already finished') {
+                setError('This game has already finished. Please start a new game.')
+                clearUrlParameters()
+            } else {
+                setError('Error making choice. Please try again.')
+            }
         }
     }
 
@@ -114,8 +153,16 @@ function App() {
         }
 
         if (gameState.status === 'game_over') {
-            const winner = gameState.health['1'] > 0 ? 'Player 1' : 'Player 2'
-            return <p>Game Over! {winner} wins!</p>
+            const winner = gameState.winner === player ? 'You win!' : 'Opponent wins!'
+            return (
+                <div>
+                    <p>Game Over! {winner}</p>
+                    <button onClick={() => {
+                        clearUrlParameters()
+                        createGame()
+                    }}>Start New Game</button>
+                </div>
+            )
         }
 
         return (
@@ -151,16 +198,6 @@ function App() {
             {!gameId && (
                 <div>
                     <button onClick={createGame}>Create New Game</button>
-                    <input
-                        type="text"
-                        placeholder="Enter Game ID"
-                        onChange={(e) => setGameId(e.target.value)}
-                    />
-                    <button onClick={() => {
-                        const playerNumber = '2'  // Assume joining as player 2
-                        window.history.pushState({}, '', `?gameId=${gameId}&player=${playerNumber}`)
-                        joinGame(gameId, playerNumber)
-                    }}>Join Game</button>
                 </div>
             )}
             {gameId && renderGame()}
