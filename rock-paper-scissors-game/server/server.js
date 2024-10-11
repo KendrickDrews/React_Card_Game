@@ -16,34 +16,19 @@ function generateShortId() {
     return crypto.randomBytes(3).toString('hex');
 }
 
-// Clear all games on server start
-console.log('Server starting, clearing all games...');
-games.clear();
-
 // Create a new game
 app.post('/game', (req, res) => {
-    let gameId;
-    do {
-        gameId = generateShortId();
-    } while (games.has(gameId));
-
+    const gameId = generateShortId();
     games.set(gameId, {
         id: gameId,
         players: [],
         choices: {},
-        health: { '1': 3, '2': 3 },
+        health: { '1': 2, '2': 2 },
         status: 'waiting',
         roundResult: null,
-        roundNumber: 1,
-        winner: null
+        roundNumber: 1
     });
     res.json({ gameId });
-});
-
-// Check if a game exists
-app.get('/game/:id/exists', (req, res) => {
-    const gameId = req.params.id;
-    res.json({ exists: games.has(gameId) });
 });
 
 // Join a game
@@ -52,31 +37,18 @@ app.post('/game/:id/join/:player', (req, res) => {
     const player = req.params.player;
     const game = games.get(gameId);
 
-    console.log(`Attempt to join game ${gameId} as player ${player}`);
-
-    if (!game) {
-        console.log(`Game ${gameId} not found`);
-        return res.status(404).json({ error: 'Game not found' });
-    }
-
-    if (game.status === 'game_over') {
-        return res.status(400).json({ error: 'Game is already finished' });
-    }
-
-    if (game.players.length >= 2 && !game.players.includes(player)) {
-        console.log(`Game ${gameId} is full`);
-        return res.status(400).json({ error: 'Game is full' });
+    if (!game || game.status === 'game_over') {
+        return res.status(404).json({ error: 'Game not found or already completed' });
     }
 
     if (!game.players.includes(player)) {
         game.players.push(player);
     }
 
-    if (game.players.length === 2 && game.status === 'waiting') {
+    if (game.players.length === 2) {
         game.status = 'round_active';
     }
 
-    console.log(`Player ${player} joined game ${gameId}. Game state:`, game);
     res.json({ player });
 });
 
@@ -84,14 +56,10 @@ app.post('/game/:id/join/:player', (req, res) => {
 app.post('/game/:id/choice', (req, res) => {
     const { id: gameId } = req.params;
     const { player, choice } = req.body;
-
     const game = games.get(gameId);
-    if (!game) {
-        return res.status(404).json({ error: 'Game not found' });
-    }
 
-    if (game.status === 'game_over') {
-        return res.status(400).json({ error: 'Game is already finished' });
+    if (!game || game.status === 'game_over') {
+        return res.status(404).json({ error: 'Game not found or already completed' });
     }
 
     game.choices[player] = choice;
@@ -116,8 +84,9 @@ app.get('/game/:id', (req, res) => {
 });
 
 function calculateRound(game) {
-    const choice1 = game.choices['1'];
-    const choice2 = game.choices['2'];
+    const [player1, player2] = game.players;
+    const choice1 = game.choices[player1];
+    const choice2 = game.choices[player2];
 
     if (choice1 === choice2) {
         game.roundResult = 'tie';
@@ -126,26 +95,29 @@ function calculateRound(game) {
         (choice1 === 'paper' && choice2 === 'rock') ||
         (choice1 === 'scissors' && choice2 === 'paper')
     ) {
-        game.health['2'] = Math.max(0, game.health['2'] - 1);
-        game.roundResult = 'player1';
+        game.health[player2] = Math.max(0, game.health[player2] - 1);
+        game.roundResult = player1;
     } else {
-        game.health['1'] = Math.max(0, game.health['1'] - 1);
-        game.roundResult = 'player2';
+        game.health[player1] = Math.max(0, game.health[player1] - 1);
+        game.roundResult = player2;
     }
 
-    game.status = 'round_complete';
-
-    if (game.health['1'] === 0 || game.health['2'] === 0) {
+    if (game.health[player1] === 0 || game.health[player2] === 0) {
         game.status = 'game_over';
-        game.winner = game.health['1'] > 0 ? '1' : '2';
+        game.winner = game.health[player1] > 0 ? player1 : player2;
+        // Store final game state
+        games.set(game.id, {
+            ...game,
+            finalState: true
+        });
     } else {
-        // Set a timeout to start the next round
+        game.status = 'round_complete';
         setTimeout(() => {
             game.status = 'round_active';
             game.choices = {};
             game.roundResult = null;
             game.roundNumber++;
-        }, 3000); // 3 seconds delay
+        }, 3000);
     }
 }
 
