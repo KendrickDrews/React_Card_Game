@@ -15,7 +15,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
   const playerSelector = useSelector(selectPlayerState)
 
   const {useCard, activeCard } = useAppSelector(selectBattleState);
-  const [animationState, setAnimationState] = useState('initial');
+  const [animationState, setAnimationState] = useState('draw');
   const [hasAnimated, setHasAnimated] = useState(false);
   const [top, setTop] = useState(topDefault);
   const [left, setLeft] = useState(303);
@@ -101,7 +101,6 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
   
   // Adjust Position of Elements based on Number of cards in hand
   useEffect(() => {
-    // Change this calculation so that it considers how many cards we *will* have
     const handSize = playerSelector.hand.length;
     const centerIndex = (handSize - 1) / 2;
     setLeft(index - centerIndex);
@@ -130,7 +129,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
         style={{
           top: `calc(${top}% - ${isSelected ? 2 : 0}%)`,
           left: `calc(50% - ${width/2}px - ${(left) * width/1.25}px)`,
-          zIndex: `${(100 + (playerSelector.hand.length/2 - index) * 10) * (hovering ? 200 : 1) * (isSelected ? 100 : 1)}`
+          zIndex: `${(100 + (playerSelector.hand.length/2 - index) * 10) + (hovering ? 20 : 0) + (isSelected ? 10 : 0)}`
         }}
         onMouseEnter={() => handleMouseEnter()}
         onMouseLeave={() => handleMouseLeave()}
