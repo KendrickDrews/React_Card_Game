@@ -11,18 +11,21 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
   // Utility for waiting by MS
   const delay = (seconds: number) => new Promise(resolve => setTimeout(resolve, (seconds * 1000)));
 
-  const drawAtStartOfBattle = () => {
+  const startOfBattleSetup = () => {
       dispatch(playerState.loadDeck(Deck));
       dispatch(playerState.shuffleDeckToDraw());
       dispatch(battleState.setBattleStart(false))
   }
 
   const drawHand = async () => {
-    while (getState().player.hand.length < getState().player.drawCount) {
+    for (let i = 0; i < player.drawCount; i++) {
       const currentState = getState();
       if (currentState.player.draw.length === 0) {
         dispatch(playerState.shuffleDiscardToDraw());
         // await delay(0.25); // Add a small delay after shuffling
+      }
+      if (currentState.player.hand.length >= 10) {
+        return
       }
       dispatch(playerState.drawCard());
       await delay(0.5);
@@ -40,7 +43,7 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
   switch (battle.phase) {
     case 'player_start': 
       if (battle.battleStart) {
-        drawAtStartOfBattle()
+        startOfBattleSetup()
       }
       if (battle.shouldDraw) {
         await drawHand()

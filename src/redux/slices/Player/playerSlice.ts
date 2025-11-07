@@ -45,7 +45,7 @@ const initPlayerState: PlayerState = {
     exhaust: [],
     health: 10,
     mana: 3,
-    drawCount: 10,
+    drawCount: 3,
 }
 
 

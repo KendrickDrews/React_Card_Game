@@ -142,17 +142,7 @@
     flex-direction: column;
     justify-content: center;
     position: absolute;
-    top: 75%;
-    left: 303px;
-    /* bottom: 0; */
     transition: all 0.2s ease-in-out;
-}
-.card:hover {
-    top: 72%;
-}
-.card.selected {
-    top: 65%;
-    left: 500px;
 }
 .card.unplayable {
     background-color: gainsboro;
