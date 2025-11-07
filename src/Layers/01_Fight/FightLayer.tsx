@@ -97,8 +97,8 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
         </div>
         <div className="grid-perspective">
           <div className="grid">
-            {[...Array(5)].map((x,x_index) => <div className="grid-row"> 
-              {[...Array(5)].map((y,y_index) => <div className="grid-item">
+            {[...Array(5)].map((x,x_index) => <div key={"grid-row-"+x_index} className="grid-row"> 
+              {[...Array(5)].map((y,y_index) => <div  key={"grid-item-"+y_index+x_index}className="grid-item">
                 ({y_index},{x_index})
                 {' '} 
               </div>)}
