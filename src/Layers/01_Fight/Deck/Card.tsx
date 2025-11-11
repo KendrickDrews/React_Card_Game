@@ -8,16 +8,28 @@ import './CardAnimation.scss'
 
   
 const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: number}) => {
+  const topDefault = 65;
   
   const dispatch = useAppDispatch()
   const selectedCard = useSelector(activeCardSelector)
   const playerSelector = useSelector(selectPlayerState)
 
   const {useCard, activeCard } = useAppSelector(selectBattleState);
-  const [animationState, setAnimationState] = useState('initial');
+  const [animationState, setAnimationState] = useState('draw');
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [top, setTop] = useState(65)
-  const [left, setLeft] = useState(303)
+  const [top, setTop] = useState(topDefault);
+  const [left, setLeft] = useState(303);
+  const [isSelected, setIsSelected] = useState(false);
+
+  useEffect(() => {
+    if (card === selectedCard) {
+      setIsSelected(true) 
+    }
+    else { 
+      setIsSelected(false) 
+    }
+
+  }, [card, selectedCard])
 
   const elementRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -55,11 +67,11 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
   }
 
   const handleMouseEnter = () => {
-    setTop(prevTop => prevTop - 2)
+    setTop(topDefault - (isSelected ? 1 : 4))
     setHovering(true)
   }
   const handleMouseLeave = () => {
-    setTop(prevTop => prevTop + 2)
+    setTop(topDefault)
     setHovering(false)
   }
   // UseCard
@@ -108,19 +120,21 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
 
     return () => window.removeEventListener('resize', updateWidth); // Cleanup
   }, []);
+
+
   // To make the hover better, give the card container a child container which moves up on hover
     return (
       <div 
         ref={elementRef}
         style={{
-          top: `${top}%`,
+          top: `calc(${top}% - ${isSelected ? 2 : 0}%)`,
           left: `calc(50% - ${width/2}px - ${(left) * width/1.25}px)`,
-          zIndex: `${(100 + (playerSelector.hand.length/2 - index) * 10) * (hovering ? 100 : 1)}`
+          zIndex: `${(100 + (playerSelector.hand.length/2 - index) * 10) + (hovering ? 20 : 0) + (isSelected ? 10 : 0)}`
         }}
         onMouseEnter={() => handleMouseEnter()}
         onMouseLeave={() => handleMouseLeave()}
         onAnimationEnd={() => handleAnimationEnd()} 
-        className={`card ${card === selectedCard ? 'selected' : ''} ${card?.manaCost > mana ? 'unplayable' : ''}
+        className={`card ${isSelected ? 'selected' : ''} ${card?.manaCost > mana ? 'unplayable' : ''}
           ${animationState === 'draw' ? 'animate-draw' : ''}
           ${animationState === 'useCard' ? 'animate-use-card' : ''}
           ${animationState === 'discardCard' ? 'animate-use-card' : ''} `} 
@@ -131,10 +145,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
           </div>
         </div>
         <div>title: {card.title}</div>
-
         <div>description: {card.description}</div>
-
-        
         <div>type: {card.type}</div>
       </div>
       

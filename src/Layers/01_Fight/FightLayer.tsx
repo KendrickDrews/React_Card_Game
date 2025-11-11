@@ -72,8 +72,6 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
    }
   }, [activeCard, dispatch, useCard])
 
-  
-
   return (
     <div className={`layer-01-container ${layerContext !== 'Fight' ? 'layer-hidden' : ''}`}>
       <div className="run-info">
@@ -95,6 +93,16 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
           <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
             <img width="500" className="unit-img"  src={cricket} />
             <div className="unit-health">{playerSelector.health}</div>
+          </div>
+        </div>
+        <div className="grid-perspective">
+          <div className="grid">
+            {[...Array(5)].map((x,x_index) => <div key={"grid-row-"+x_index} className="grid-row"> 
+              {[...Array(5)].map((y,y_index) => <div  key={"grid-item-"+y_index+x_index}className="grid-item">
+                ({y_index},{x_index})
+                {' '} 
+              </div>)}
+            </div>)}
           </div>
         </div>
         <div className="station-enemy">
