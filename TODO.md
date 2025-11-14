@@ -1,0 +1,11 @@
+# TODO
+- [] Position the 'Grid' correctly
+- [] Position other possible background/foreground elements
+- [] Programmatic Method for making rock shaped DIV's
+- [] Assign units to the grid
+- [] click and drag cards
+- [] cards are affected by position
+- [] State to keep track of units
+- [] How will status work on the units? (DISPLAY)
+    - If the units are in a perspective grid - how do you show the status effects properly.
+- [] 
