@@ -79,10 +79,12 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
 
   useEffect(() => {
     const charDiv = document.getElementById('3,5');
-    const placement = charDiv?.getBoundingClientRect();
+    if (!charDiv) return
+
+    const placement = charDiv.getBoundingClientRect();
     
-    setVert(placement ? ((placement?.top + placement?.bottom) /2) - ((((cricketW * 150)/108)/2) + 15 ) : 0);
-    setHor(placement ? ((placement?.left + placement.right)/2) - (cricketW /2) : 0);
+    setVert(((placement?.top + placement?.bottom) /2) - ((((cricketW * 150)/108)/2) + 15 ));
+    setHor(((placement?.left + placement.right)/2) - (cricketW /2));
   }, []);
 
   return (
