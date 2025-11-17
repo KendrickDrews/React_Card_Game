@@ -183,20 +183,19 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    background-color: rgba(230, 240, 210, 0.5);
     transition: all 0.3s ease-in-out;
-}
-.grid-item > .unit {
-    position: absolute;
-    transform-style: preserve-3d;
-    // background-color: rgba(255,87,199, 0.75);
-    transform: rotateX(-40deg) rotateY(0deg) rotateZ(-14deg) translateY(-23%) skew(10deg, 14deg);
-    // top: -200px;
 }
 .unit.dead > img {
     transform: rotate(180deg);
 }
 .unit-img {
     aspect-ratio: "auto 150 / 108"
+}
+.unit-health {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
 }
 .flipped-horizontal {
     transform: scaleX(-1);

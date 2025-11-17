@@ -72,6 +72,11 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
    }
   }, [activeCard, dispatch, useCard])
 
+  const charDiv = document.getElementById('3,5');
+  const placement = charDiv?.getBoundingClientRect();
+  const vert = placement ? ((placement?.top + placement?.bottom) /2) - 280 : 0;
+  const hor = placement ? ((placement?.left + placement.right)/2) - 250 : 0;
+
   return (
     <div className={`layer-01-container ${layerContext !== 'Fight' ? 'layer-hidden' : ''}`}>
       <div className="run-info">
@@ -88,49 +93,17 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
         </div>
       </div>
       <div className="artifact-bar"></div>
-      <div className="battle-stations">
-        <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+      <div style={{position: "absolute", top: vert, left: hor, zIndex: 1000000 }} className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
           <img width="500" className="unit-img"  src={cricket} />
-          {/* <div className="unit-health">{playerSelector.health}</div> */}
+          <div className="unit-health">{playerSelector.health}</div>
         </div>
-        {/* <div className="station-player">
-          <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
-            <img width="500" className="unit-img"  src={cricket} />
-            <div className="unit-health">{playerSelector.health}</div>
-          </div>
-        </div> */}
+      <div className="battle-stations">
         <div className="grid-perspective">
           <div className="grid">
             {[...Array(10)].map((x,x_index) => <div key={"grid-row-"+x_index} className="grid-row"> 
-              {[...Array(10)].map((y,y_index) => <div  key={"grid-item-"+y_index+x_index}className="grid-item">
-                {(y_index === 3 && x_index === 5) 
-                  ? 
-                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
-                        <img width="500" className="unit-img"  src={cricket} />
-                        {/* <div className="unit-health">{playerSelector.health}</div> */}
-                      </div>
-                  : `${y_index},${x_index}`}
-                {/* {(y_index === 2 && x_index === 4) 
-                  ? 
-                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
-                        <img width="500" className="unit-img"  src={cricket} />
-                        <div className="unit-health">{playerSelector.health}</div>
-                      </div>
-                  : `${y_index},${x_index}`}
-                {(y_index === 2 && x_index === 5) 
-                  ? 
-                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
-                        <img width="500" className="unit-img"  src={cricket} />
-                        <div className="unit-health">{playerSelector.health}</div>
-                      </div>
-                  : `${y_index},${x_index}`}
-                {(y_index === 3 && x_index === 4) 
-                  ? 
-                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
-                        <img width="500" className="unit-img"  src={cricket} />
-                        <div className="unit-health">{playerSelector.health}</div>
-                      </div>
-                  : `${y_index},${x_index}`} */}
+              {[...Array(10)].map((y,y_index) => <div id={`${y_index},${x_index}`} key={"grid-item-"+y_index+x_index}className="grid-item">
+                {`${y_index},${x_index}`}
+                
                 {' '} 
               </div>)}
             </div>)}
