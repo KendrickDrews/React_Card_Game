@@ -1,7 +1,7 @@
 import  PlayerHand  from "./Deck/PlayerHand"
 import cricket from '../../assets/Cricket_R.png'
 import sun from '../../assets/Sun_R.png'
-import { useEffect, useState} from "react"
+import { useEffect, useMemo, useState} from "react"
 import { useAppDispatch, useAppSelector } from "././../../redux/hooks";
 import { battleState, playerState, enemyState, selectBattleState, selectEnemyState, selectPlayerState } from "../../redux";
 import { handleBattlePhase } from "./HandleBattlePhase"
@@ -72,13 +72,18 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
    }
   }, [activeCard, dispatch, useCard])
 
+
   const cricketW = 350;
-  const charDiv = document.getElementById('3,5');
-  const placement = charDiv?.getBoundingClientRect();
-  
-  console.log(placement);
-  const vert = placement ? ((placement?.top + placement?.bottom) /2) - ((((cricketW * 150)/108)/2) + 15 ) : 0;
-  const hor = placement ? ((placement?.left + placement.right)/2) - (cricketW /2) : 0;
+  const [vert, setVert] = useState(0);
+  const [hor, setHor] = useState(0);
+
+  useEffect(() => {
+    const charDiv = document.getElementById('3,5');
+    const placement = charDiv?.getBoundingClientRect();
+    
+    setVert(placement ? ((placement?.top + placement?.bottom) /2) - ((((cricketW * 150)/108)/2) + 15 ) : 0);
+    setHor(placement ? ((placement?.left + placement.right)/2) - (cricketW /2) : 0);
+  }, []);
 
   return (
     <div className={`layer-01-container ${layerContext !== 'Fight' ? 'layer-hidden' : ''}`}>
