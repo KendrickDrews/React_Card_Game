@@ -89,29 +89,60 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       </div>
       <div className="artifact-bar"></div>
       <div className="battle-stations">
-        <div className="station-player">
+        <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+          <img width="500" className="unit-img"  src={cricket} />
+          {/* <div className="unit-health">{playerSelector.health}</div> */}
+        </div>
+        {/* <div className="station-player">
           <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
             <img width="500" className="unit-img"  src={cricket} />
             <div className="unit-health">{playerSelector.health}</div>
           </div>
-        </div>
+        </div> */}
         <div className="grid-perspective">
           <div className="grid">
-            {[...Array(5)].map((x,x_index) => <div key={"grid-row-"+x_index} className="grid-row"> 
-              {[...Array(5)].map((y,y_index) => <div  key={"grid-item-"+y_index+x_index}className="grid-item">
-                ({y_index},{x_index})
+            {[...Array(10)].map((x,x_index) => <div key={"grid-row-"+x_index} className="grid-row"> 
+              {[...Array(10)].map((y,y_index) => <div  key={"grid-item-"+y_index+x_index}className="grid-item">
+                {(y_index === 3 && x_index === 5) 
+                  ? 
+                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+                        <img width="500" className="unit-img"  src={cricket} />
+                        {/* <div className="unit-health">{playerSelector.health}</div> */}
+                      </div>
+                  : `${y_index},${x_index}`}
+                {/* {(y_index === 2 && x_index === 4) 
+                  ? 
+                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+                        <img width="500" className="unit-img"  src={cricket} />
+                        <div className="unit-health">{playerSelector.health}</div>
+                      </div>
+                  : `${y_index},${x_index}`}
+                {(y_index === 2 && x_index === 5) 
+                  ? 
+                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+                        <img width="500" className="unit-img"  src={cricket} />
+                        <div className="unit-health">{playerSelector.health}</div>
+                      </div>
+                  : `${y_index},${x_index}`}
+                {(y_index === 3 && x_index === 4) 
+                  ? 
+                      <div className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+                        <img width="500" className="unit-img"  src={cricket} />
+                        <div className="unit-health">{playerSelector.health}</div>
+                      </div>
+                  : `${y_index},${x_index}`} */}
                 {' '} 
               </div>)}
             </div>)}
           </div>
         </div>
-        <div className="station-enemy">
+        {/* <div className="station-enemy">
           <div className={`unit ${enemySelector.health <= 0 ? 'dead': ''}`}>
             <img width="500" className="unit-img flipped-horizontal" src={sun} />
             
             <div className="unit-health">{enemySelector.health}</div>
           </div>
-        </div>
+        </div> */}
       </div>
       <div className="card-area">
         <div className="draw-and-mana">
