@@ -72,10 +72,13 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
    }
   }, [activeCard, dispatch, useCard])
 
+  const cricketW = 350;
   const charDiv = document.getElementById('3,5');
   const placement = charDiv?.getBoundingClientRect();
-  const vert = placement ? ((placement?.top + placement?.bottom) /2) - 280 : 0;
-  const hor = placement ? ((placement?.left + placement.right)/2) - 250 : 0;
+  
+  console.log(placement);
+  const vert = placement ? ((placement?.top + placement?.bottom) /2) - ((((cricketW * 150)/108)/2) + 15 ) : 0;
+  const hor = placement ? ((placement?.left + placement.right)/2) - (cricketW /2) : 0;
 
   return (
     <div className={`layer-01-container ${layerContext !== 'Fight' ? 'layer-hidden' : ''}`}>
@@ -94,9 +97,13 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       </div>
       <div className="artifact-bar"></div>
       <div style={{position: "absolute", top: vert, left: hor, zIndex: 1000000 }} className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
-          <img width="500" className="unit-img"  src={cricket} />
-          <div className="unit-health">{playerSelector.health}</div>
-        </div>
+        <img width={cricketW} className="unit-img"  src={cricket} />
+        <div className="unit-health">{playerSelector.health}</div>
+      </div>
+      {/* <div style={{position: "absolute", top: vert, left: hor, zIndex: 1000001 }} className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
+        <img width={cricketW} className="unit-img"  src={cricket} />
+        <div className="unit-health">{playerSelector.health}</div>
+      </div> */}
       <div className="battle-stations">
         <div className="grid-perspective">
           <div className="grid">
