@@ -13,3 +13,5 @@
     - If the units are in a perspective grid - how do you show the status effects properly.
 - [] combat log
     - [] "click" on turn to scroll to start of turn in logs
+
+- [] Color compromise. Find some "pallette's" that would be nice or colors that we like - pre compute filters and make classes for them.
