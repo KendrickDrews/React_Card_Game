@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState} from "react"
 import { useAppDispatch, useAppSelector } from "././../../redux/hooks";
 import { battleState, playerState, enemyState, selectBattleState, selectEnemyState, selectPlayerState } from "../../redux";
 import { handleBattlePhase } from "./HandleBattlePhase"
+import Cricket from "../../components/Cricket";
 
 interface LayerContext {
   layerContext: string;
@@ -104,7 +105,8 @@ const FightLayer= ({layerContext, setLayerContext}: LayerContext) => {
       </div>
       <div className="artifact-bar"></div>
       <div style={{position: "absolute", top: vert, left: hor, zIndex: 1000000 }} className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
-        <img width={cricketW} className="unit-img"  src={cricket} />
+        {/* <img width={cricketW} className="unit-img"  src={cricket} /> */}
+        <Cricket width={cricketW}/>
         <div className="unit-health">{playerSelector.health}</div>
       </div>
       {/* <div style={{position: "absolute", top: vert, left: hor, zIndex: 1000001 }} className={`unit ${playerSelector.health <= 0 ? 'dead': ''}`}>
