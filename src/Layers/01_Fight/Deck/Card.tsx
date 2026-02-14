@@ -2,8 +2,10 @@
 import { PlayingCard } from "../../../types/card"
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks"
 import { battleState, activeCardSelector, playerState, selectBattleState, selectPlayerState } from "../../../redux"
+import { selectPlayerCreatures, selectEnemyCreatures } from "../../../redux/slices/BattleCreatures/battleCreaturesSelector"
 import { useSelector } from "react-redux"
 import { useEffect, useRef, useState } from "react"
+import { getValidTargets } from "../getValidTargets"
 import './CardAnimation.scss'
 
   
@@ -57,12 +59,25 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
         break;
     }
   };
+  const playerCreatures = useAppSelector(selectPlayerCreatures);
+  const enemyCreatures = useAppSelector(selectEnemyCreatures);
+
   const toggleActiveOnClick = (card: PlayingCard) => {
     if (mana < card.manaCost) return
     if (selectedCard?.id === card.id) {
-      dispatch(battleState.setActiveCard("none"))
+      // Deselect card — clear targeting
+      dispatch(battleState.clearTargeting())
     } else {
+      // Select card — compute targeting info
+      const targeting = getValidTargets(card, playerCreatures, enemyCreatures);
       dispatch(battleState.setActiveCard(card))
+      dispatch(battleState.setTargetingMode(targeting.mode))
+      dispatch(battleState.setValidTargetIds(targeting.validTargetIds))
+
+      // Auto-resolve cards that don't need targeting (e.g. addMana)
+      if (targeting.mode === 'auto') {
+        dispatch(battleState.useCard(true))
+      }
     }
   }
 
@@ -124,8 +139,9 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
 
   // To make the hover better, give the card container a child container which moves up on hover
     return (
-      <div 
+      <div
         ref={elementRef}
+        data-card-id={card.id}
         style={{
           top: `calc(${top}% - ${isSelected ? 2 : 0}%)`,
           left: `calc(50% - ${width/2}px - ${(left) * width/1.25}px)`,
@@ -138,7 +154,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
           ${animationState === 'draw' ? 'animate-draw' : ''}
           ${animationState === 'useCard' ? 'animate-use-card' : ''}
           ${animationState === 'discardCard' ? 'animate-use-card' : ''} `} 
-        onClick={() =>toggleActiveOnClick(card)}>
+        onClick={(e) => { e.stopPropagation(); toggleActiveOnClick(card); }}>
         <div className="card-mana-container">
           <div className="card-mana-value">
             { card.manaCost }

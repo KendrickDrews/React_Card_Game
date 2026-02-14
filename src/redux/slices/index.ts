@@ -1,3 +1,5 @@
 export * from './Player'
 export * from './Battle'
-export * from './Enemy'
+export * from './Team'
+export * from './BattleCreatures'
+export * from './Map'

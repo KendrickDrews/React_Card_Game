@@ -6,7 +6,7 @@ $number_of_layers: 3;
 
 // Global Styles
 html {
-    background-color: blue;
+    background-color: #1a1a2e;
 }
 body  {
     display: flex;
@@ -14,7 +14,7 @@ body  {
     width: 100vw;
     margin: 0;
     padding: 0;
-    background-color: red;
+    background-color: #1a1a2e;
     overflow: hidden;
 }
 #root {
@@ -23,8 +23,9 @@ body  {
     margin: 0;
     padding: 0;
     text-align: center;
-    background-color: aqua;
+    background-color: #1a1a2e;
     box-sizing: border-box;
+    overflow: hidden;
   }
 // Below two functions are for making each layer come and go from a different direction
   @function get-top-position($i) {

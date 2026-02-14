@@ -1,12 +1,11 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit'
-import { battleSlice, enemySlice, playerSlice } from './index'
+import { battleSlice, playerSlice, teamSlice, battleCreaturesSlice, mapSlice } from './index'
 import { createLogger } from 'redux-logger'
 
-const rootReducer = combineSlices( battleSlice, playerSlice, enemySlice)
+const rootReducer = combineSlices(battleSlice, playerSlice, teamSlice, battleCreaturesSlice, mapSlice)
 
 const logger = createLogger({
-  collapsed: true, // This ensures logs are collapsed by default
-  // You can add more options here if needed
+  collapsed: true,
 })
 
 export const store = configureStore({

@@ -7,7 +7,7 @@ import { MapLayer } from './Layers/02_Map'
 
 function App() {
 
-  const [layerContext, setLayerContext] = useState("Fight")
+  const [layerContext, setLayerContext] = useState("Map")
 
   return (
     <>

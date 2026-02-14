@@ -1,0 +1,70 @@
+.initiative-bar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  height: 40px;
+  min-height: 40px;
+  background: rgba(20, 20, 40, 0.8);
+  z-index: 10;
+  border-radius: 0 0 6px 6px;
+}
+
+.initiative-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  font-size: 0.7rem;
+  transition: all 0.3s ease;
+  min-width: 70px;
+
+  &.player-side {
+    border-color: #4a9;
+    background: rgba(68, 170, 153, 0.2);
+  }
+
+  &.enemy-side {
+    border-color: #c44;
+    background: rgba(204, 68, 68, 0.2);
+  }
+
+  &.active {
+    transform: scale(1.15);
+    box-shadow: 0 0 10px rgba(255, 255, 200, 0.6);
+    border-color: gold;
+  }
+
+  &.dead {
+    opacity: 0.3;
+    text-decoration: line-through;
+  }
+}
+
+.initiative-name {
+  font-weight: bold;
+  color: #eee;
+  white-space: nowrap;
+}
+
+.initiative-stats {
+  display: flex;
+  gap: 8px;
+  color: #aaa;
+  font-size: 0.6rem;
+}
+
+.initiative-hp {
+  color: #e66;
+}
+
+.initiative-value {
+  color: #6ae;
+}

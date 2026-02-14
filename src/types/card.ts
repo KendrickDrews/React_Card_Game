@@ -1,15 +1,24 @@
+import { CreatureAction } from './creature';
+
+export interface ModifyActionEffect {
+  creatureId: string;
+  action: CreatureAction;
+}
+
 export interface PlayingCard {
-    id: number;
-    title: string;
-    type?: string;
-    manaCost: number;
-    value?: number;
-    description?: string;
-    effect: CardEffects;
-    discard: boolean;
-  }
-  
-export type EffectKey = 'damage' | 'heal' | 'haste' | 'defender' | 'addMana' | 'anyColor' | string;
+  id: string;
+  creatureId: string;
+  title: string;
+  type?: string;
+  manaCost: number;
+  value?: number;
+  description?: string;
+  effect: CardEffects;
+  modifyAction?: ModifyActionEffect;
+  discard: boolean;
+}
+
+export type EffectKey = 'damage' | 'heal' | 'haste' | 'defender' | 'addMana' | 'addBlock' | 'anyColor' | string;
 
 export type EffectValue = number | boolean | string;
 

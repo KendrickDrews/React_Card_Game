@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Slay The Browser** — a browser-based card game inspired by Slay the Spire. Built with React 18, Redux Toolkit, TypeScript, Vite, and SCSS.
+**Slay The Browser** — a browser-based creature-collector card game inspired by Slay the Spire. Built with React 18, Redux Toolkit, TypeScript, Vite, and SCSS.
 
 ## Commands
 
@@ -27,34 +27,62 @@ The app uses a numbered layer system for screen management. Each layer is a full
 
 Layer show/hide uses `.layer-hidden` CSS class with position transitions (1.5s ease-in-out).
 
-### Redux State (3 slices)
+### Redux State (4 slices)
 
 All slices live in `src/redux/slices/` and follow the pattern: `<name>Slice.ts` + `<name>Selector.ts` + `index.ts`.
 
-- **battle** — Turn phase management, active card tracking. Phase cycle: `player_start → player_active → player_end → enemy_start → enemy_active → enemy_end`. Actions are exported as `battleState`.
-- **player** — Health, mana, drawCount, and 5 card piles: `deck`, `draw`, `hand`, `discard`, `exhaust`. Uses Fisher-Yates shuffle. Actions exported as `playerState`.
-- **enemy** — Health and block. Actions exported as `enemyState`.
+- **battle** — Turn phase management, initiative queue, active card, targeting, battle result. Phase cycle: `turn_start → player_card_phase → player_end → initiative_phase → turn_end`. Actions exported as `battleState`.
+- **player** — Mana, maxMana, drawCount, and 5 card piles: `deck`, `draw`, `hand`, `discard`, `exhaust`. Uses Fisher-Yates shuffle. Actions exported as `playerState`.
+- **team** — Persistent player creature roster and activeTeam selection. Survives between battles. Actions exported as `teamActions`.
+- **battleCreatures** — In-combat state for ALL creatures (both player and enemy). HP, block, buffs/debuffs, initiative actions, enemy patterns. Actions exported as `battleCreaturesState`.
 
 Typed hooks (`useAppDispatch`, `useAppSelector`) are in `src/redux/hooks.ts`.
 
-### Battle Phase Thunk
+### Creature System
 
-`src/Layers/01_Fight/HandleBattlePhase.ts` — The core game loop. An async thunk that dispatches actions based on `battle.phase`, with timed delays for animations. The `player_active` phase is a no-op (waits for player input). Phase transitions are driven by `battleState.nextBattlePhase()` which cycles through the phase array.
+Types defined in `src/types/creature.ts`:
+- **BaseCreature** — Shared fields: id, name, HP, block, initiative, passive, buffs, debuffs, isAlive, spriteId
+- **PlayerCreature** extends BaseCreature — adds cards (card IDs), defaultAction, currentAction (modifiable by cards), level, experience
+- **EnemyCreature** extends BaseCreature — adds pattern (array of EnemyPatternStep) and patternIndex
+
+Player creatures contribute cards to the shared deck. Each creature has a `defaultAction` that fires during the initiative phase; cards can modify `currentAction` before the player ends their turn.
+
+Enemy creatures cycle through their `pattern` array instead of using cards.
+
+### Battle Flow
+
+5-phase cycle in `src/Layers/01_Fight/HandleBattlePhase.ts`:
+1. **turn_start** — First turn: load team + enemies, compose deck from creature cards. Every turn: reset block, reset creature actions, reset mana, tick status effects, build initiative queue, draw hand.
+2. **player_card_phase** — No-op; player plays cards from hand.
+3. **player_end** — Discard hand with animation cascade.
+4. **initiative_phase** — All creatures (both sides) act in a mixed queue sorted by initiative (highest first). Dead creatures are skipped but remain in the UI for potential revival. After each action, checks for victory/defeat.
+5. **turn_end** — Increment turn, loop back.
 
 ### Card System
 
-- Card definitions in `src/Layers/01_Fight/Deck/Deck.tsx` (10-card base deck)
-- Card type defined in `src/types/card.ts` — includes id, title, type, manaCost, value, description, effect (`{damage, heal, addMana}`), and discard flag
-- Card types: Creature, Spell, Enchantment, Artifact, Land
-- `Card.tsx` handles animation states, z-index stacking, hover/selection, and mana-gating
+- Card templates in `src/Layers/01_Fight/Deck/CardRegistry.ts` — lookup by string ID
+- `getCardsForCreature()` instantiates PlayingCard[] from a creature's card ID list, stamping each with `creatureId`
+- Card type in `src/types/card.ts` — id (string), creatureId, title, type, manaCost, effect, optional modifyAction
+- Card effects resolved via `src/Layers/01_Fight/resolveCardEffect.ts`
+- `Card.tsx` handles animation states, z-index stacking, hover/selection, mana-gating
+
+### Initiative & Action Resolution
+
+- `src/Layers/01_Fight/resolveCreatureAction.ts` — Resolves a creature's action based on targetType (self, single_enemy, all_enemies, single_ally, all_allies, random_enemy)
+- Initiative bar UI: `src/Layers/01_Fight/InitiativeBar/InitiativeBar.tsx` — shows all creatures sorted by initiative at top-center of battle arena
 
 ### Sprite System
 
-`src/components/Cricket.tsx` renders a composite character from 6 layered PNG images (Eye, Main, Socks, Top, Under, LineArt SVG). Each layer is positioned absolutely at the same dimensions.
+`src/components/Cricket.tsx` renders a composite character from 6 layered PNG images. `src/components/CreatureUnit.tsx` is the reusable creature display component (sprite, HP bar, block, enemy intent).
+
+### Data
+
+- `src/data/starterTeam.ts` — Default player team (Cricket + Sun Spirit)
+- `src/data/encounters.ts` — Enemy encounter definitions (Goblin Scout + Green Slime)
 
 ### Battle Grid
 
-The fight layer uses a 10x10 CSS grid with perspective transform for 3D positioning. Unit placement uses grid cell coordinates to calculate pixel positions.
+The fight layer uses a 10x10 CSS grid with perspective transform for 3D positioning. Creature placement on the grid is deferred to a future implementation.
 
 ## Path Alias
 
@@ -62,7 +90,8 @@ The fight layer uses a 10x10 CSS grid with perspective transform for 3D position
 
 ## Key Patterns
 
-- Slice actions are exported as named objects (`battleState`, `playerState`, `enemyState`) rather than individual action creators
+- Slice actions are exported as named objects (`battleState`, `playerState`, `teamActions`, `battleCreaturesState`) rather than individual action creators
 - Redux Logger middleware is enabled with collapsed logs
 - SCSS is used throughout; `src/styles/main.scss` contains global styles and layer animation math
 - Each layer directory has its own `.scss` file alongside its component
+- Buff/debuff/passive types are defined in `src/types/creature.ts` but logic is stubbed for future implementation
