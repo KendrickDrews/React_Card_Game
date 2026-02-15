@@ -16,6 +16,7 @@ export interface PlayingCard {
   effect: CardEffects;
   modifyAction?: ModifyActionEffect;
   discard: boolean;
+  targetMode?: 'creature' | 'cell';
 }
 
 export type EffectKey = 'damage' | 'heal' | 'haste' | 'defender' | 'addMana' | 'addBlock' | 'anyColor' | string;

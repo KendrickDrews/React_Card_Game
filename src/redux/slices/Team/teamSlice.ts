@@ -53,6 +53,24 @@ export const teamSlice = createSlice({
       state.roster = [];
       state.activeTeam = [];
     },
+    syncFromBattle: (state, action: PayloadAction<{ id: string; currentHp: number; isAlive: boolean }[]>) => {
+      for (const update of action.payload) {
+        const creature = state.roster.find(c => c.id === update.id);
+        if (creature) {
+          creature.currentHp = update.currentHp;
+          creature.isAlive = update.isAlive;
+        }
+      }
+    },
+    healTeamByPercent: (state, action: PayloadAction<number>) => {
+      const percent = action.payload;
+      for (const creature of state.roster) {
+        if (creature.isAlive) {
+          const healAmount = Math.floor(creature.maxHp * (percent / 100));
+          creature.currentHp = Math.min(creature.currentHp + healAmount, creature.maxHp);
+        }
+      }
+    },
     fullyHealTeam: (state) => {
       for (const creature of state.roster) {
         creature.currentHp = creature.maxHp;

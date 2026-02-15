@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { selectCurrentMap, selectCurrentNodeId, selectAvailableNodes, selectCompletedNodeIds } from '../../redux/slices/Map/mapSelector';
+import { selectCurrentMap, selectCurrentNodeId, selectCurrentNode, selectAvailableNodes, selectCompletedNodeIds } from '../../redux/slices/Map/mapSelector';
 import { mapActions } from '../../redux/slices/Map/mapSlice';
 import { battleState } from '../../redux/slices/Battle/battleSlice';
 import { playerState } from '../../redux/slices/Player/playerSlice';
@@ -10,6 +10,9 @@ import { MapNodeType } from '../../types/map';
 import MapNodeComponent from './MapNode';
 import MapConnections from './MapConnections';
 import { AudioEngine } from '../../audio';
+import EventScreen from './EventScreen';
+import RestScreen from './RestScreen';
+import ShopScreen from './ShopScreen';
 
 interface LayerContext {
   layerContext: string;
@@ -20,12 +23,14 @@ const MapLayer = ({ layerContext, setLayerContext }: LayerContext) => {
   const dispatch = useAppDispatch();
   const currentMap = useAppSelector(selectCurrentMap);
   const currentNodeId = useAppSelector(selectCurrentNodeId);
+  const currentNode = useAppSelector(selectCurrentNode);
   const availableNodes = useAppSelector(selectAvailableNodes);
   const completedNodeIds = useAppSelector(selectCompletedNodeIds);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const isVisible = layerContext === 'Map';
   const isNodeInProgress = currentNodeId !== null && !completedNodeIds.includes(currentNodeId);
+  const currentNodeType = currentNode?.type ?? null;
 
   // Generate map if none exists when layer becomes visible
   useEffect(() => {
@@ -72,9 +77,12 @@ const MapLayer = ({ layerContext, setLayerContext }: LayerContext) => {
       dispatch(battleState.resetTurn());
       setLayerContext('Fight');
     } else {
-      // Rest, Shop, Event: complete immediately (placeholder)
-      dispatch(mapActions.completeCurrentNode());
+      // Rest, Shop, Event: node stays "in progress" until the overlay screen completes it
     }
+  };
+
+  const handleScreenComplete = () => {
+    dispatch(mapActions.completeCurrentNode());
   };
 
   return (
@@ -121,6 +129,10 @@ const MapLayer = ({ layerContext, setLayerContext }: LayerContext) => {
           </div>
         )}
       </div>
+
+      {isNodeInProgress && currentNodeType === 'rest' && <RestScreen onComplete={handleScreenComplete} />}
+      {isNodeInProgress && currentNodeType === 'shop' && <ShopScreen onComplete={handleScreenComplete} />}
+      {isNodeInProgress && currentNodeType === 'event' && <EventScreen onComplete={handleScreenComplete} />}
     </div>
   );
 };

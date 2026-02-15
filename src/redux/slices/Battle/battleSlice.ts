@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PlayingCard } from '../../../types/card';
-import { InitiativeEntry } from '../../../types/creature';
+import { GridPosition, InitiativeEntry } from '../../../types/creature';
 
 const battlePhases = [
   "turn_start",
@@ -12,7 +12,7 @@ const battlePhases = [
 
 type BattlePhase = typeof battlePhases[number];
 
-export type TargetingMode = 'none' | 'enemy' | 'ally' | 'self' | 'auto';
+export type TargetingMode = 'none' | 'auto' | 'enemy_creature' | 'ally_creature' | 'enemy_cell' | 'ally_cell';
 
 export interface BattleState {
   phase: BattlePhase;
@@ -34,6 +34,7 @@ export interface BattleState {
   targetCreatureId: string | null;
   targetingMode: TargetingMode;
   validTargetIds: string[];
+  targetPosition: GridPosition | null;
 
   // Animation
   activeAnimation: { creatureId: string; animationName: string } | null;
@@ -53,6 +54,7 @@ const initBattleState: BattleState = {
   targetCreatureId: null,
   targetingMode: 'none',
   validTargetIds: [],
+  targetPosition: null,
   activeAnimation: null,
 };
 
@@ -122,11 +124,15 @@ export const battleSlice = createSlice({
     setValidTargetIds: (state, action: PayloadAction<string[]>) => {
       state.validTargetIds = action.payload;
     },
+    setTargetPosition: (state, action: PayloadAction<GridPosition | null>) => {
+      state.targetPosition = action.payload;
+    },
     clearTargeting: (state) => {
       state.activeCard = null;
       state.targetCreatureId = null;
       state.targetingMode = 'none';
       state.validTargetIds = [];
+      state.targetPosition = null;
     },
 
     // Animation

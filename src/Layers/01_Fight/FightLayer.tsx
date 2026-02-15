@@ -8,10 +8,11 @@ import { handleBattlePhase } from "./HandleBattlePhase"
 import { resolveCardEffect } from "./resolveCardEffect";
 import { store } from "../../redux/store";
 import { isInZone, PLAYER_ZONE, ENEMY_ZONE } from "./gridConstants";
+import { getAoeCells, parseAoeShape } from "./battleHelpers";
 import InitiativeBar from "./InitiativeBar/InitiativeBar";
 import CreatureUnit from "../../components/CreatureUnit";
 import TargetingOverlay from "./TargetingOverlay";
-import { BattleCreature } from "../../types/creature";
+import { BattleCreature, EnemyCreature } from "../../types/creature";
 import { mapActions } from "../../redux/slices/Map/mapSlice";
 import { teamActions } from "../../redux/slices/Team/teamSlice";
 import { battleCreaturesState } from "../../redux/slices/BattleCreatures/battleCreaturesSlice";
@@ -97,7 +98,22 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
 
   // Click on a valid target creature
   const handleTargetClick = (creatureId: string) => {
+    const creature = [...playerCreatures, ...enemyCreatures].find(c => c.id === creatureId);
     dispatch(battleState.setTargetCreature(creatureId));
+    if (creature?.gridPosition) {
+      dispatch(battleState.setTargetPosition(creature.gridPosition));
+    }
+    dispatch(battleState.useCard(true));
+  };
+
+  // Click on a cell (for cell-based targeting)
+  const handleCellTargetClick = (col: number, row: number) => {
+    dispatch(battleState.setTargetPosition({ col, row }));
+    // If a creature occupies this cell, also set it as target
+    const occupant = creaturesByPosition.get(`${col},${row}`);
+    if (occupant) {
+      dispatch(battleState.setTargetCreature(occupant.id));
+    }
     dispatch(battleState.useCard(true));
   };
 
@@ -106,6 +122,82 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
   // Build flat click-target positions from actual grid cell screen rects
   const [targetRects, setTargetRects] = useState<Map<string, DOMRect>>(new Map());
 
+  const isCellMode = targetingMode === 'enemy_cell' || targetingMode === 'ally_cell';
+
+  // AOE preview: track which cell the mouse is hovering over in cell mode
+  const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+
+  // Compute AOE/line preview cells from hovered position + active card effects
+  const aoePreviewCells = useMemo(() => {
+    if (!isCellMode || !hoveredCell || !activeCard) return new Set<string>();
+    const [col, row] = hoveredCell.split(',').map(Number);
+
+    // lineDamage: preview the entire row across the enemy zone
+    if (activeCard.effect.lineDamage) {
+      const cells = new Set<string>();
+      for (let c = ENEMY_ZONE.colMin; c <= ENEMY_ZONE.colMax; c++) {
+        cells.add(`${c},${row}`);
+      }
+      return cells;
+    }
+
+    // AOE with shape
+    if (activeCard.effect.aoeShape) {
+      const shape = parseAoeShape(activeCard.effect.aoeShape as string);
+      const cells = getAoeCells({ col, row }, shape);
+      return new Set(cells.map(c => `${c.col},${c.row}`));
+    }
+
+    return new Set<string>();
+  }, [isCellMode, hoveredCell, activeCard]);
+
+  // Enemy intent hover: track which enemy is being hovered
+  const [hoveredEnemyId, setHoveredEnemyId] = useState<string | null>(null);
+
+  // Compute which creature IDs are targeted by the hovered enemy's intent
+  const intentTargetIds = useMemo(() => {
+    if (!hoveredEnemyId) return new Set<string>();
+    const enemy = enemyCreatures.find(c => c.id === hoveredEnemyId) as EnemyCreature | undefined;
+    if (!enemy || !enemy.isAlive) return new Set<string>();
+    const nextIntent = enemy.pattern[enemy.patternIndex];
+    if (!nextIntent) return new Set<string>();
+
+    const ids = new Set<string>();
+    switch (nextIntent.action.targetType) {
+      case 'self':
+        ids.add(enemy.id);
+        break;
+      case 'single_enemy':
+      case 'random_enemy':
+        // Can't know exact target — highlight all potential targets
+        for (const c of playerCreatures) {
+          if (c.isAlive) ids.add(c.id);
+        }
+        break;
+      case 'all_enemies':
+        for (const c of playerCreatures) {
+          if (c.isAlive) ids.add(c.id);
+        }
+        break;
+      case 'single_ally':
+        for (const c of enemyCreatures) {
+          if (c.isAlive && c.id !== enemy.id) ids.add(c.id);
+        }
+        break;
+      case 'all_allies':
+        for (const c of enemyCreatures) {
+          if (c.isAlive) ids.add(c.id);
+        }
+        break;
+    }
+    return ids;
+  }, [hoveredEnemyId, enemyCreatures, playerCreatures]);
+
+  // Clear AOE hover when targeting mode changes
+  useEffect(() => {
+    setHoveredCell(null);
+  }, [targetingMode]);
+
   const computeTargetRects = useCallback(() => {
     if (!isTargetingActive || !battleStationsRef.current) {
       setTargetRects(new Map());
@@ -113,27 +205,61 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
     }
     const containerRect = battleStationsRef.current.getBoundingClientRect();
     const rects = new Map<string, DOMRect>();
-    const allCreatures = [...playerCreatures, ...enemyCreatures];
-    for (const creature of allCreatures) {
-      if (!creature.gridPosition || !validTargetIds.includes(creature.id)) continue;
-      const cellEl = document.getElementById(`${creature.gridPosition.col},${creature.gridPosition.row}`);
-      if (!cellEl) continue;
-      const cellRect = cellEl.getBoundingClientRect();
-      rects.set(creature.id, new DOMRect(
-        cellRect.left - containerRect.left,
-        cellRect.top - containerRect.top,
-        cellRect.width,
-        cellRect.height,
-      ));
+
+    if (isCellMode) {
+      // Cell mode: iterate all cells in the appropriate zone
+      const zone = targetingMode === 'enemy_cell' ? ENEMY_ZONE : PLAYER_ZONE;
+      for (let col = zone.colMin; col <= zone.colMax; col++) {
+        for (let row = zone.rowMin; row <= zone.rowMax; row++) {
+          const cellEl = document.getElementById(`${col},${row}`);
+          if (!cellEl) continue;
+          const cellRect = cellEl.getBoundingClientRect();
+          rects.set(`${col},${row}`, new DOMRect(
+            cellRect.left - containerRect.left,
+            cellRect.top - containerRect.top,
+            cellRect.width,
+            cellRect.height,
+          ));
+        }
+      }
+    } else {
+      // Creature mode: only occupied cells with valid target IDs
+      const allCreatures = [...playerCreatures, ...enemyCreatures];
+      for (const creature of allCreatures) {
+        if (!creature.gridPosition || !validTargetIds.includes(creature.id)) continue;
+        const cellEl = document.getElementById(`${creature.gridPosition.col},${creature.gridPosition.row}`);
+        if (!cellEl) continue;
+        const cellRect = cellEl.getBoundingClientRect();
+        rects.set(creature.id, new DOMRect(
+          cellRect.left - containerRect.left,
+          cellRect.top - containerRect.top,
+          cellRect.width,
+          cellRect.height,
+        ));
+      }
     }
+
     setTargetRects(rects);
-  }, [isTargetingActive, playerCreatures, enemyCreatures, validTargetIds]);
+  }, [isTargetingActive, isCellMode, targetingMode, playerCreatures, enemyCreatures, validTargetIds]);
 
   useEffect(() => {
     computeTargetRects();
     window.addEventListener('resize', computeTargetRects);
     return () => window.removeEventListener('resize', computeTargetRects);
   }, [computeTargetRects]);
+
+  // Compute set of targetable cell keys for visual feedback
+  const targetableCells = useMemo(() => {
+    if (!isCellMode) return new Set<string>();
+    const zone = targetingMode === 'enemy_cell' ? ENEMY_ZONE : PLAYER_ZONE;
+    const cells = new Set<string>();
+    for (let col = zone.colMin; col <= zone.colMax; col++) {
+      for (let row = zone.rowMin; row <= zone.rowMax; row++) {
+        cells.add(`${col},${row}`);
+      }
+    }
+    return cells;
+  }, [isCellMode, targetingMode]);
 
   const getZoneClass = (col: number, row: number): string => {
     if (isInZone(col, row, PLAYER_ZONE)) return 'player-zone';
@@ -169,23 +295,32 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
                 className="grid-row"
               >
                 {[...Array(10)].map((_y, colIndex) => {
-                  const creature = creaturesByPosition.get(`${colIndex},${rowIndex}`);
+                  const cellKey = `${colIndex},${rowIndex}`;
+                  const creature = creaturesByPosition.get(cellKey);
                   const zoneClass = getZoneClass(colIndex, rowIndex);
                   const isValid = creature ? validTargetIds.includes(creature.id) : false;
+                  const isCellTargetable = targetableCells.has(cellKey);
+                  const isAoePreview = aoePreviewCells.has(cellKey);
+                  const isIntentTarget = creature ? intentTargetIds.has(creature.id) : false;
 
                   return (
                     <div
-                      id={`${colIndex},${rowIndex}`}
+                      id={cellKey}
                       key={"grid-item-" + colIndex + "-" + rowIndex}
-                      className={`grid-item ${zoneClass}`}
+                      className={`grid-item ${zoneClass} ${isCellTargetable ? 'cell-targetable' : ''} ${isAoePreview ? 'aoe-preview' : ''}`}
                     >
                       {creature && (
-                        <div className="grid-creature-wrapper">
+                        <div
+                          className="grid-creature-wrapper"
+                          onMouseEnter={() => creature.side === 'enemy' ? setHoveredEnemyId(creature.id) : undefined}
+                          onMouseLeave={() => creature.side === 'enemy' ? setHoveredEnemyId(null) : undefined}
+                        >
                           <CreatureUnit
                             creature={creature}
                             size={120}
                             isTargetingActive={isTargetingActive}
                             isValidTarget={isValid}
+                            isIntentTarget={isIntentTarget}
                           />
                         </div>
                       )}
@@ -201,19 +336,26 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
         {/* Flat click-target overlay — outside 3D context, all targets equally clickable */}
         {isTargetingActive && (
           <div className="creature-click-overlay" onClick={handleGridBackgroundClick}>
-            {[...targetRects.entries()].map(([creatureId, rect]) => (
+            {[...targetRects.entries()].map(([key, rect]) => (
               <div
-                key={creatureId}
-                className="creature-click-target"
+                key={key}
+                className={isCellMode ? 'cell-click-target' : 'creature-click-target'}
                 style={{
                   left: rect.x,
                   top: rect.y,
                   width: rect.width,
                   height: rect.height,
                 }}
+                onMouseEnter={isCellMode ? () => setHoveredCell(key) : undefined}
+                onMouseLeave={isCellMode ? () => setHoveredCell(null) : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleTargetClick(creatureId);
+                  if (isCellMode) {
+                    const [col, row] = key.split(',').map(Number);
+                    handleCellTargetClick(col, row);
+                  } else {
+                    handleTargetClick(key);
+                  }
                 }}
               />
             ))}
@@ -236,6 +378,14 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
                 <button
                   className="battle-result-button"
                   onClick={() => {
+                    // Sync surviving creature HP back to persistent roster
+                    const hpSync = playerCreatures.map(c => ({
+                      id: c.id,
+                      currentHp: c.currentHp,
+                      isAlive: c.isAlive,
+                    }));
+                    dispatch(teamActions.syncFromBattle(hpSync));
+
                     dispatch(mapActions.completeCurrentNode());
                     dispatch(battleCreaturesState.clearBattleCreatures());
                     dispatch(playerState.resetAllPiles());
@@ -295,7 +445,7 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
             </div>
           </div>
           <div className="end-turn-container">
-            <button className="end-turn-button" onClick={() => handleEndTurn()}>End Turn</button>
+            <button disabled={phase !== "player_card_phase"} className="end-turn-button" onClick={() => handleEndTurn()}>End Turn</button>
           </div>
         </div>
       </div>

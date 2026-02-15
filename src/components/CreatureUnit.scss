@@ -143,6 +143,14 @@
   pointer-events: none;
 }
 
+// Enemy intent hover — highlights creatures targeted by the hovered enemy's next action
+.creature-unit.intent-target {
+  filter: brightness(1.1) drop-shadow(0 0 6px rgba(255, 80, 80, 0.7));
+  outline: 2px solid rgba(255, 80, 80, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 @keyframes target-pulse {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.25) drop-shadow(0 0 8px rgba(255, 255, 100, 0.6)); }

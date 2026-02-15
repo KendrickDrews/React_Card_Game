@@ -19,24 +19,48 @@ export function getValidTargets(
   // Cards that modify an action target a specific creature
   if (card.modifyAction) {
     return {
-      mode: 'ally',
+      mode: 'ally_creature',
       validTargetIds: [card.modifyAction.creatureId],
     };
   }
 
-  // Damage cards target enemies
+  // AOE cards always use cell targeting (auto-inferred)
+  if (effects.aoeDamage) {
+    return {
+      mode: 'enemy_cell',
+      validTargetIds: [],
+    };
+  }
+
+  // Damage cards target enemy creatures
   if (effects.damage) {
     return {
-      mode: 'enemy',
+      mode: 'enemy_creature',
       validTargetIds: aliveEnemyIds,
     };
   }
 
-  // Heal and addBlock cards target allies
+  // Heal and addBlock cards target ally creatures
   if (effects.heal || effects.addBlock) {
     return {
-      mode: 'ally',
+      mode: 'ally_creature',
       validTargetIds: alivePlayerIds,
+    };
+  }
+
+  // Push cards target enemy creatures
+  if (effects.pushDistance) {
+    return {
+      mode: 'enemy_creature',
+      validTargetIds: aliveEnemyIds,
+    };
+  }
+
+  // Line damage targets an enemy zone cell (player picks which row to fire down)
+  if (effects.lineDamage) {
+    return {
+      mode: 'enemy_cell',
+      validTargetIds: [],
     };
   }
 

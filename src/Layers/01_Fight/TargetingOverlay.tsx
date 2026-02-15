@@ -12,7 +12,7 @@ const TargetingOverlay = ({ containerRef }: TargetingOverlayProps) => {
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
 
-  const isActive = targetingMode === 'enemy' || targetingMode === 'ally' || targetingMode === 'self';
+  const isActive = ['enemy_creature', 'ally_creature', 'enemy_cell', 'ally_cell'].includes(targetingMode);
 
   const computeAnchor = useCallback(() => {
     if (!isActive || !activeCard || !containerRef.current) {
@@ -59,7 +59,7 @@ const TargetingOverlay = ({ containerRef }: TargetingOverlayProps) => {
 
   if (!isActive || !mousePos || !anchor) return null;
 
-  const strokeColor = targetingMode === 'enemy' ? '#e44' : '#4c4';
+  const strokeColor = targetingMode.startsWith('enemy') ? '#e44' : '#4c4';
 
   return (
     <svg className="targeting-overlay">

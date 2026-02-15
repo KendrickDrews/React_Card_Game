@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { PlayerCreature, EnemyCreature, StatusEffect, CreatureAction } from '../../../types/creature';
+import { PlayerCreature, EnemyCreature, StatusEffect, CreatureAction, GridPosition } from '../../../types/creature';
 import { PLAYER_ZONE, ENEMY_START_POSITIONS } from '../../../Layers/01_Fight/gridConstants';
 
 export interface BattleCreaturesState {
@@ -79,6 +79,11 @@ export const battleCreaturesSlice = createSlice({
     resetAllBlock: (state) => {
       for (const c of state.playerCreatures) c.block = 0;
       for (const c of state.enemyCreatures) c.block = 0;
+    },
+    moveCreature: (state, action: PayloadAction<{ creatureId: string; newPosition: GridPosition }>) => {
+      findAndMutate(state, action.payload.creatureId, (creature) => {
+        creature.gridPosition = action.payload.newPosition;
+      });
     },
 
     // === Player creature action management ===

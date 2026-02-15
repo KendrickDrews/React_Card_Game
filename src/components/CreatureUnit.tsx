@@ -9,9 +9,10 @@ interface CreatureUnitProps {
   size?: number;
   isTargetingActive?: boolean;
   isValidTarget?: boolean;
+  isIntentTarget?: boolean;
 }
 
-const CreatureUnit = ({ creature, size = 200, isTargetingActive = false, isValidTarget = false }: CreatureUnitProps) => {
+const CreatureUnit = ({ creature, size = 200, isTargetingActive = false, isValidTarget = false, isIntentTarget = false }: CreatureUnitProps) => {
   const isEnemy = creature.side === 'enemy';
   const enemyCreature = isEnemy ? (creature as EnemyCreature) : null;
   const nextIntent = enemyCreature
@@ -31,7 +32,7 @@ const CreatureUnit = ({ creature, size = 200, isTargetingActive = false, isValid
 
   return (
     <div
-      className={`creature-unit ${!creature.isAlive ? 'dead' : ''} ${isEnemy ? 'enemy' : 'player'} ${targetingClass} ${animClass}`}
+      className={`creature-unit ${!creature.isAlive ? 'dead' : ''} ${isEnemy ? 'enemy' : 'player'} ${targetingClass} ${animClass} ${isIntentTarget ? 'intent-target' : ''}`}
     >
       {/* Enemy intent indicator */}
       {isEnemy && nextIntent && (

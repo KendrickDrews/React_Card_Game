@@ -23,7 +23,7 @@ export function resolveCreatureAction(
       const enemies = isPlayerSide
         ? state.enemyCreatures.filter(c => c.isAlive)
         : state.playerCreatures.filter(c => c.isAlive);
-      if (enemies.length > 0) targets = [enemies[0]];
+      if (enemies.length > 0) targets = [enemies[Math.floor(Math.random() * enemies.length)]];
       break;
     }
 
@@ -38,7 +38,7 @@ export function resolveCreatureAction(
       const allies = isPlayerSide
         ? state.playerCreatures.filter(c => c.isAlive && c.id !== actingCreature.id)
         : state.enemyCreatures.filter(c => c.isAlive && c.id !== actingCreature.id);
-      if (allies.length > 0) targets = [allies[0]];
+      if (allies.length > 0) targets = [allies[Math.floor(Math.random() * allies.length)]];
       break;
     }
 

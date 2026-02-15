@@ -88,6 +88,10 @@ The fight layer uses a 10x10 CSS grid with perspective transform for 3D position
 
 `@/types` resolves to `src/types/` (configured in tsconfig.json).
 
+## Workflow Preferences
+
+- Skip `npm run build` and `npm run lint` at the end of tasks — the user runs these manually.
+
 ## Key Patterns
 
 - Slice actions are exported as named objects (`battleState`, `playerState`, `teamActions`, `battleCreaturesState`) rather than individual action creators
