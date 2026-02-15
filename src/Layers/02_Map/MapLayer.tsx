@@ -9,6 +9,7 @@ import { generateMap } from '../../data/mapGenerator';
 import { MapNodeType } from '../../types/map';
 import MapNodeComponent from './MapNode';
 import MapConnections from './MapConnections';
+import { AudioEngine } from '../../audio';
 
 interface LayerContext {
   layerContext: string;
@@ -56,6 +57,7 @@ const MapLayer = ({ layerContext, setLayerContext }: LayerContext) => {
     const isAvailable = availableNodes.some(n => n.id === nodeId);
     if (!isAvailable) return;
 
+    AudioEngine.getInstance().playSfx('ui-click');
     dispatch(mapActions.setCurrentNode(nodeId));
 
     if (nodeType === 'fight' || nodeType === 'elite' || nodeType === 'boss') {

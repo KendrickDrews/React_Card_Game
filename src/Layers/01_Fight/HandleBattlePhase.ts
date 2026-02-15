@@ -2,11 +2,10 @@ import { battleState, playerState } from '../../redux';
 import { RootState } from '../../redux';
 import { Action, ThunkAction } from '@reduxjs/toolkit';
 import { battleCreaturesState } from '../../redux/slices/BattleCreatures/battleCreaturesSlice';
-import { teamActions } from '../../redux/slices/Team/teamSlice';
 import { InitiativeEntry, PlayerCreature, EnemyCreature } from '../../types/creature';
 import { getCardsForCreature } from './Deck/CardRegistry';
 import { resolveCreatureAction } from './resolveCreatureAction';
-import { starterTeam } from '../../data/starterTeam';
+import { getAnimationName } from './animationRegistry';
 import { grasslandsEncounter, getEncounterForNode } from '../../data/encounters';
 import { MapNode } from '../../types/map';
 import { PlayingCard } from '../../types/card';
@@ -18,14 +17,13 @@ const delay = (seconds: number) => new Promise(resolve => setTimeout(resolve, se
 const drawHand = async (dispatch: any, getState: () => RootState) => {
   const player = getState().player;
   for (let i = 0; i < player.drawCount; i++) {
-    const currentState = getState();
-    if (currentState.player.draw.length === 0) {
+    if (getState().player.draw.length === 0) {
       dispatch(playerState.shuffleDiscardToDraw());
     }
-    if (currentState.player.draw.length === 0) {
+    if (getState().player.draw.length === 0) {
       break; // both draw and discard empty
     }
-    if (currentState.player.hand.length >= 10) {
+    if (getState().player.hand.length >= 10) {
       break;
     }
     dispatch(playerState.drawCard());
@@ -52,15 +50,6 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
     // ============================================
     case 'turn_start': {
       if (battle.battleStart) {
-        // Load starter team into team roster if empty
-        const teamState = getState().team;
-        if (teamState.roster.length === 0) {
-          for (const creature of starterTeam) {
-            dispatch(teamActions.addCreatureToRoster(creature));
-            dispatch(teamActions.addCreatureToActiveTeam(creature.id));
-          }
-        }
-
         // Load active team creatures into battle
         const updatedTeam = getState().team;
         const activeCreatures = updatedTeam.roster.filter(
@@ -180,18 +169,29 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
           continue; // skip dead creatures
         }
 
-        // Resolve action
+        // Determine action and start animation
+        let action;
         if (entry.side === 'player') {
-          const playerCreature = creature as PlayerCreature;
-          resolveCreatureAction(dispatch, getState, playerCreature, playerCreature.currentAction);
+          action = (creature as PlayerCreature).currentAction;
         } else {
           const enemyCreature = creature as EnemyCreature;
-          const patternStep = enemyCreature.pattern[enemyCreature.patternIndex];
-          resolveCreatureAction(dispatch, getState, enemyCreature, patternStep.action);
-          dispatch(battleCreaturesState.advanceEnemyPattern(enemyCreature.id));
+          action = enemyCreature.pattern[enemyCreature.patternIndex].action;
         }
 
-        await delay(0.75);
+        const animationName = getAnimationName(action);
+        dispatch(battleState.setActiveAnimation({ creatureId: creature.id, animationName }));
+        await delay(0.3);
+
+        // Resolve action at animation midpoint
+        if (entry.side === 'player') {
+          resolveCreatureAction(dispatch, getState, creature as PlayerCreature, action);
+        } else {
+          resolveCreatureAction(dispatch, getState, creature as EnemyCreature, action);
+          dispatch(battleCreaturesState.advanceEnemyPattern(creature.id));
+        }
+
+        await delay(0.45);
+        dispatch(battleState.clearActiveAnimation());
 
         // Check for battle end
         const stateAfter = getState().battleCreatures;

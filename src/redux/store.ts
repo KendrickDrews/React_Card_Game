@@ -1,8 +1,9 @@
 import { combineSlices, configureStore } from '@reduxjs/toolkit'
-import { battleSlice, playerSlice, teamSlice, battleCreaturesSlice, mapSlice } from './index'
+import { battleSlice, playerSlice, teamSlice, battleCreaturesSlice, mapSlice, audioSlice, menuSlice } from './index'
+import { audioListenerMiddleware } from '../audio'
 import { createLogger } from 'redux-logger'
 
-const rootReducer = combineSlices(battleSlice, playerSlice, teamSlice, battleCreaturesSlice, mapSlice)
+const rootReducer = combineSlices(battleSlice, playerSlice, teamSlice, battleCreaturesSlice, mapSlice, audioSlice, menuSlice)
 
 const logger = createLogger({
   collapsed: true,
@@ -11,7 +12,8 @@ const logger = createLogger({
 export const store = configureStore({
   reducer: rootReducer,
   devTools: true,
-  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware().prepend(audioListenerMiddleware.middleware).concat(logger),
 })
 
 export type RootState = ReturnType<typeof store.getState>

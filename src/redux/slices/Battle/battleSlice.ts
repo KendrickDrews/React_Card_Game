@@ -34,6 +34,9 @@ export interface BattleState {
   targetCreatureId: string | null;
   targetingMode: TargetingMode;
   validTargetIds: string[];
+
+  // Animation
+  activeAnimation: { creatureId: string; animationName: string } | null;
 }
 
 const initBattleState: BattleState = {
@@ -50,6 +53,7 @@ const initBattleState: BattleState = {
   targetCreatureId: null,
   targetingMode: 'none',
   validTargetIds: [],
+  activeAnimation: null,
 };
 
 export const battleSlice = createSlice({
@@ -123,6 +127,14 @@ export const battleSlice = createSlice({
       state.targetCreatureId = null;
       state.targetingMode = 'none';
       state.validTargetIds = [];
+    },
+
+    // Animation
+    setActiveAnimation: (state, action: PayloadAction<{ creatureId: string; animationName: string }>) => {
+      state.activeAnimation = action.payload;
+    },
+    clearActiveAnimation: (state) => {
+      state.activeAnimation = null;
     },
   },
 });

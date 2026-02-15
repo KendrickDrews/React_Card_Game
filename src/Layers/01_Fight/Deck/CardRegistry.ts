@@ -93,6 +93,7 @@ const cardTemplates: Record<string, CardTemplate> = {
 
 // Instantiate a full PlayingCard[] from a creature's card ID list
 export function getCardsForCreature(creature: PlayerCreature): PlayingCard[] {
+  const instanceCounts: Record<string, number> = {};
   return creature.cards
     .map(cardId => {
       const template = cardTemplates[cardId];
@@ -100,10 +101,12 @@ export function getCardsForCreature(creature: PlayerCreature): PlayingCard[] {
         console.warn(`Card template not found: ${cardId}`);
         return null;
       }
-      // Each card instance gets a unique ID combining creature and card template
+      // Track instance count so duplicate cards get unique IDs
+      const count = (instanceCounts[cardId] ?? 0) + 1;
+      instanceCounts[cardId] = count;
       return {
         ...template,
-        id: `${creature.id}-${template.id}`,
+        id: `${creature.id}-${template.id}-${count}`,
         creatureId: creature.id,
         discard: false,
       } as PlayingCard;

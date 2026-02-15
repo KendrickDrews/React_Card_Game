@@ -15,6 +15,8 @@ import { BattleCreature } from "../../types/creature";
 import { mapActions } from "../../redux/slices/Map/mapSlice";
 import { teamActions } from "../../redux/slices/Team/teamSlice";
 import { battleCreaturesState } from "../../redux/slices/BattleCreatures/battleCreaturesSlice";
+import { menuState } from "../../redux/slices/Menu/menuSlice";
+import { AudioEngine } from "../../audio";
 
 interface LayerContext {
   layerContext: string;
@@ -54,6 +56,7 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
   }, [dispatch, phase]);
 
   const handleEndTurn = () => {
+    AudioEngine.getInstance().playSfx('ui-click');
     dispatch(battleState.nextBattlePhase());
   };
 
@@ -255,8 +258,9 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
                     dispatch(playerState.resetAllPiles());
                     dispatch(battleState.clearTargeting());
                     dispatch(battleState.setBattleResult('ongoing'));
-                    dispatch(teamActions.fullyHealTeam());
-                    setLayerContext('Map');
+                    dispatch(teamActions.resetRoster());
+                    dispatch(menuState.resetMenu());
+                    setLayerContext('Menu');
                   }}
                 >
                   New Run

@@ -9,3 +9,4 @@ export const selectIsInitiativeResolving = createSelector(selectBattleState, (ba
 export const selectBattleResult = createSelector(selectBattleState, (battle) => battle.battleResult)
 export const selectTargetingMode = createSelector(selectBattleState, (battle) => battle.targetingMode)
 export const selectValidTargetIds = createSelector(selectBattleState, (battle) => battle.validTargetIds)
+export const selectActiveAnimation = createSelector(selectBattleState, (battle) => battle.activeAnimation)

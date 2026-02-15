@@ -1,4 +1,6 @@
 import { BattleCreature, EnemyCreature } from '../types/creature';
+import { useAppSelector } from '../redux/hooks';
+import { selectActiveAnimation } from '../redux/slices/Battle/battleSelector';
 import Cricket from './Cricket';
 import './CreatureUnit.scss';
 
@@ -22,9 +24,14 @@ const CreatureUnit = ({ creature, size = 200, isTargetingActive = false, isValid
     ? (isValidTarget ? 'targetable' : 'not-targetable')
     : '';
 
+  const activeAnimation = useAppSelector(selectActiveAnimation);
+  const animClass = activeAnimation?.creatureId === creature.id
+    ? `anim-${activeAnimation.animationName}`
+    : '';
+
   return (
     <div
-      className={`creature-unit ${!creature.isAlive ? 'dead' : ''} ${isEnemy ? 'enemy' : 'player'} ${targetingClass}`}
+      className={`creature-unit ${!creature.isAlive ? 'dead' : ''} ${isEnemy ? 'enemy' : 'player'} ${targetingClass} ${animClass}`}
     >
       {/* Enemy intent indicator */}
       {isEnemy && nextIntent && (
@@ -37,7 +44,7 @@ const CreatureUnit = ({ creature, size = 200, isTargetingActive = false, isValid
       )}
 
       {/* Sprite */}
-      <div className={`creature-sprite ${isEnemy ? 'flipped-horizontal' : ''}`}>
+      <div className={`creature-sprite ${isEnemy ? 'flipped-horizontal' : ''} ${creature.isAlive ? 'idle' : ''}`}>
         {creature.spriteId === 'cricket' ? (
           <Cricket width={size} />
         ) : (

@@ -25,15 +25,12 @@ export function isInZone(col: number, row: number, zone: GridZone): boolean {
   return col >= zone.colMin && col <= zone.colMax && row >= zone.rowMin && row <= zone.rowMax;
 }
 
-// Default starting positions for up to 3 creatures per side
-export const PLAYER_START_POSITIONS = [
-  { col: 2, row: 4 },
-  { col: 2, row: 6 },
-  { col: 1, row: 5 },
-];
+// Player positions are now set by formationPosition on each creature
+// (relative to PLAYER_ZONE origin, mapped at battle load time)
 
 export const ENEMY_START_POSITIONS = [
   { col: 7, row: 4 },
   { col: 7, row: 6 },
-  { col: 8, row: 5 },
+  { col: 8, row: 4 },
+  { col: 8, row: 6 },
 ];

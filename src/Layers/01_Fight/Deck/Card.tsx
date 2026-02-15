@@ -6,6 +6,7 @@ import { selectPlayerCreatures, selectEnemyCreatures } from "../../../redux/slic
 import { useSelector } from "react-redux"
 import { useEffect, useRef, useState } from "react"
 import { getValidTargets } from "../getValidTargets"
+import { AudioEngine } from "../../../audio"
 import './CardAnimation.scss'
 
   
@@ -64,6 +65,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
 
   const toggleActiveOnClick = (card: PlayingCard) => {
     if (mana < card.manaCost) return
+    AudioEngine.getInstance().playSfx('ui-click')
     if (selectedCard?.id === card.id) {
       // Deselect card — clear targeting
       dispatch(battleState.clearTargeting())
@@ -84,6 +86,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
   const handleMouseEnter = () => {
     setTop(topDefault - (isSelected ? 1 : 4))
     setHovering(true)
+    AudioEngine.getInstance().playSfx('card-hover')
   }
   const handleMouseLeave = () => {
     setTop(topDefault)

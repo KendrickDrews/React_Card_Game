@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PlayerCreature, EnemyCreature, StatusEffect, CreatureAction } from '../../../types/creature';
-import { PLAYER_START_POSITIONS, ENEMY_START_POSITIONS } from '../../../Layers/01_Fight/gridConstants';
+import { PLAYER_ZONE, ENEMY_START_POSITIONS } from '../../../Layers/01_Fight/gridConstants';
 
 export interface BattleCreaturesState {
   playerCreatures: PlayerCreature[];
@@ -29,10 +29,13 @@ export const battleCreaturesSlice = createSlice({
   initialState: initState,
   reducers: {
     loadPlayerCreatures: (state, action: PayloadAction<PlayerCreature[]>) => {
-      state.playerCreatures = action.payload.map((c, index) => ({
+      state.playerCreatures = action.payload.map((c) => ({
         ...c,
         currentAction: { ...c.defaultAction },
-        gridPosition: PLAYER_START_POSITIONS[index] ?? { col: 2, row: 3 + index },
+        gridPosition: {
+          col: c.formationPosition.col + PLAYER_ZONE.colMin,
+          row: c.formationPosition.row + PLAYER_ZONE.rowMin,
+        },
       }));
     },
     loadEnemyCreatures: (state, action: PayloadAction<EnemyCreature[]>) => {

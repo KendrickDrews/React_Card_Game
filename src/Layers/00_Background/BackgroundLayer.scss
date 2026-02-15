@@ -1,0 +1,444 @@
+.layer-00-container {
+  background: linear-gradient(180deg, #1a1a2e, #16213e, #0f3460);
+  color: #e0e0e0;
+  font-family: 'Georgia', serif;
+  overflow-y: auto;
+}
+
+// ==================
+// Main Menu
+// ==================
+.main-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 2rem;
+}
+
+.main-menu-title {
+  font-size: 3.5rem;
+  color: #f0c040;
+  text-shadow:
+    0 0 20px rgba(240, 192, 64, 0.6),
+    0 0 40px rgba(240, 192, 64, 0.3);
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.main-menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 220px;
+}
+
+.menu-button {
+  background: linear-gradient(135deg, #2a2a4a, #3a3a5a);
+  color: #e0e0e0;
+  border: 1px solid #555;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #3a3a5a, #4a4a6a);
+    border-color: #f0c040;
+    color: #f0c040;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    border-color: #555;
+    color: #888;
+  }
+}
+
+.menu-button-small {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+}
+
+// ==================
+// Run Config
+// ==================
+.run-config {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+}
+
+.run-config-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    color: #f0c040;
+  }
+}
+
+.run-config-body {
+  display: flex;
+  flex: 1;
+  gap: 1.5rem;
+  min-height: 0;
+}
+
+.run-config-left {
+  flex: 0 0 250px;
+}
+
+.run-config-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+// ==================
+// Team Slot Panel (Formation Grid)
+// ==================
+.team-slot-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  outline: none;
+
+  h3 {
+    margin: 0;
+    color: #ccc;
+
+    .team-count {
+      font-size: 0.8rem;
+      color: #888;
+      font-weight: normal;
+      margin-left: 0.5rem;
+    }
+  }
+}
+
+.formation-col-labels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.formation-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.formation-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  border: 1px solid #3a3a4a;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  aspect-ratio: 1;
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+
+  &.occupied {
+    border-color: #6a6a8a;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &.swap-active {
+    border-color: #f0c040;
+    background: rgba(240, 192, 64, 0.12);
+    box-shadow: 0 0 6px rgba(240, 192, 64, 0.3);
+  }
+
+  &.swap-target:hover {
+    border-color: #f0c040;
+    background: rgba(240, 192, 64, 0.08);
+  }
+
+  &.assignable:hover {
+    border-color: #88bb88;
+    background: rgba(136, 187, 136, 0.1);
+  }
+
+  &.empty:not(.assignable):not(.swap-target) {
+    opacity: 0.5;
+  }
+}
+
+.cell-sprite {
+  flex-shrink: 0;
+}
+
+.cell-name {
+  font-size: 0.65rem;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.cell-remove {
+  background: rgba(200, 60, 60, 0.3);
+  border: 1px solid #c83c3c;
+  color: #ff8888;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  padding: 0;
+
+  &:hover {
+    background: rgba(200, 60, 60, 0.6);
+  }
+}
+
+// ==================
+// Creature Grid
+// ==================
+.creature-grid {
+  h3 {
+    margin: 0 0 0.5rem;
+    color: #ccc;
+  }
+}
+
+.creature-grid-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.5rem;
+}
+
+.creature-grid-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #88aacc;
+    background: rgba(136, 170, 204, 0.1);
+  }
+
+  &.selected {
+    border-color: #f0c040;
+    background: rgba(240, 192, 64, 0.15);
+  }
+
+  &.in-team {
+    opacity: 0.4;
+  }
+}
+
+.grid-cell-name {
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.placeholder-sprite-small {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #ccc;
+}
+
+// ==================
+// Creature Details
+// ==================
+.creature-details {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 1rem;
+
+  &.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    color: #888;
+  }
+
+  h3 {
+    margin: 0 0 0.5rem;
+    color: #f0c040;
+  }
+}
+
+.creature-description {
+  color: #bbb;
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem;
+}
+
+.creature-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+
+  span {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+}
+
+.creature-action {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.creature-cards {
+  font-size: 0.85rem;
+
+  ul {
+    margin: 0.25rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  li {
+    margin-bottom: 0.15rem;
+  }
+}
+
+.card-cost {
+  color: #88aaff;
+}
+
+// ==================
+// Run Options
+// ==================
+.run-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.run-options-dropdowns {
+  display: flex;
+  gap: 1rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: #bbb;
+
+    select {
+      background: #2a2a4a;
+      color: #e0e0e0;
+      border: 1px solid #555;
+      padding: 0.4rem;
+      border-radius: 4px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+  }
+}
+
+.start-run-button {
+  font-size: 1.2rem;
+  padding: 0.75rem 2rem;
+  align-self: flex-start;
+}
+
+.start-run-warning {
+  color: #ff8888;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+// ==================
+// Bestiary
+// ==================
+.bestiary {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+}
+
+.bestiary-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    color: #f0c040;
+  }
+}
+
+.bestiary-body {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+
+  .creature-grid {
+    flex: 1;
+  }
+
+  .creature-details {
+    flex: 1;
+  }
+}
+
+// ==================
+// Placeholder screens
+// ==================
+.menu-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+
+  h2 {
+    color: #f0c040;
+    margin: 0;
+  }
+
+  p {
+    color: #888;
+  }
+}

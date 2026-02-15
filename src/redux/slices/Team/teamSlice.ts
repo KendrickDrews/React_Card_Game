@@ -49,6 +49,10 @@ export const teamSlice = createSlice({
         creature.currentHp = creature.maxHp;
       }
     },
+    resetRoster: (state) => {
+      state.roster = [];
+      state.activeTeam = [];
+    },
     fullyHealTeam: (state) => {
       for (const creature of state.roster) {
         creature.currentHp = creature.maxHp;

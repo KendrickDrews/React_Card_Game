@@ -102,6 +102,7 @@ export interface PlayerCreature extends BaseCreature {
   level: number;
   experience: number;
   experienceToNextLevel: number;
+  formationPosition: GridPosition; // position within the player zone grid, maps directly to battlefield
 }
 
 // === Enemy Creature ===
@@ -115,6 +116,20 @@ export interface EnemyCreature extends BaseCreature {
   side: 'enemy';
   pattern: EnemyPatternStep[];
   patternIndex: number;
+}
+
+// === Species Template ===
+
+export interface CreatureSpecies {
+  speciesId: string;
+  name: string;
+  description: string;
+  maxHp: number;
+  initiative: number;
+  spriteId: string;
+  cards: string[];
+  defaultAction: CreatureAction;
+  passive: PassiveAbility | null;
 }
 
 // === Union & Initiative ===
