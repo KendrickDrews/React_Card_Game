@@ -1,6 +1,25 @@
 import { RootState } from '../../redux/store';
 import { battleCreaturesState } from '../../redux/slices/BattleCreatures/battleCreaturesSlice';
-import { BattleCreature, CreatureAction } from '../../types/creature';
+import { BattleCreature, CreatureAction, PlayerCreature, EnemyCreature } from '../../types/creature';
+import { getSummonTemplate } from '../../data/summonRegistry';
+import { PLAYER_ZONE, ENEMY_ZONE } from './gridConstants';
+import { battleState } from '../../redux/slices/Battle/battleSlice';
+
+function findEmptyCell(
+  state: ReturnType<() => RootState>['battleCreatures'],
+  zone: { colMin: number; colMax: number; rowMin: number; rowMax: number }
+): { col: number; row: number } | null {
+  const occupied = new Set<string>();
+  for (const c of [...state.playerCreatures, ...state.enemyCreatures]) {
+    if (c.gridPosition) occupied.add(`${c.gridPosition.col},${c.gridPosition.row}`);
+  }
+  for (let col = zone.colMin; col <= zone.colMax; col++) {
+    for (let row = zone.rowMin; row <= zone.rowMax; row++) {
+      if (!occupied.has(`${col},${row}`)) return { col, row };
+    }
+  }
+  return null;
+}
 
 export function resolveCreatureAction(
   dispatch: (action: any) => void,
@@ -79,6 +98,81 @@ export function resolveCreatureAction(
         creatureId: target.id,
         amount: action.effect.addBlock,
       }));
+    }
+  }
+
+  // Handle summon effect
+  if (action.effect.summon) {
+    const template = getSummonTemplate(action.effect.summon);
+    if (template) {
+      const bcState = getState().battleCreatures;
+      const zone = isPlayerSide ? PLAYER_ZONE : ENEMY_ZONE;
+      const cell = findEmptyCell(bcState, zone);
+      if (cell) {
+        const id = `summon-${template.id}-${Date.now()}`;
+        if (isPlayerSide) {
+          const summoned: PlayerCreature = {
+            id,
+            speciesId: template.id,
+            name: template.name,
+            side: 'player',
+            maxHp: template.maxHp,
+            currentHp: template.maxHp,
+            block: 0,
+            initiative: template.initiative,
+            passive: null,
+            buffs: [],
+            debuffs: [],
+            isAlive: true,
+            isSummoned: true,
+            spriteId: template.spriteId,
+            gridPosition: cell,
+            cards: [],
+            defaultAction: { ...template.action },
+            currentAction: { ...template.action },
+            level: 1,
+            experience: 0,
+            experienceToNextLevel: 0,
+            formationPosition: { col: 0, row: 0 },
+          };
+          dispatch(battleCreaturesState.addPlayerCreature(summoned));
+          dispatch(battleState.addToInitiativeQueue({
+            creatureId: id,
+            side: 'player',
+            initiative: template.initiative,
+            hasActed: false,
+          }));
+        } else {
+          const summoned: EnemyCreature = {
+            id,
+            speciesId: template.id,
+            name: template.name,
+            side: 'enemy',
+            maxHp: template.maxHp,
+            currentHp: template.maxHp,
+            block: 0,
+            initiative: template.initiative,
+            passive: null,
+            buffs: [],
+            debuffs: [],
+            isAlive: true,
+            isSummoned: true,
+            spriteId: template.spriteId,
+            gridPosition: cell,
+            pattern: [
+              { action: { ...template.action }, intentIcon: 'attack' },
+            ],
+            patternIndex: 0,
+          };
+          dispatch(battleCreaturesState.addEnemyCreature(summoned));
+          dispatch(battleState.addToInitiativeQueue({
+            creatureId: id,
+            side: 'enemy',
+            initiative: template.initiative,
+            hasActed: false,
+          }));
+        }
+      }
     }
   }
 }

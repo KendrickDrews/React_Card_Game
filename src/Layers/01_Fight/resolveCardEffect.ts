@@ -1,9 +1,12 @@
 import { AppDispatch, RootState } from '../../redux/store';
 import { PlayingCard } from '../../types/card';
+import { PlayerCreature } from '../../types/creature';
 import { battleCreaturesState } from '../../redux/slices/BattleCreatures/battleCreaturesSlice';
 import { playerState } from '../../redux/slices/Player/playerSlice';
 import { scanRowForTarget, getCreaturesInAoe, executePush, parseAoeShape } from './battleHelpers';
 import { PushDirection } from '../../types/battleHelpers';
+import { getSummonTemplate } from '../../data/summonRegistry';
+import { battleState } from '../../redux/slices/Battle/battleSlice';
 
 export function resolveCardEffect(
   dispatch: AppDispatch,
@@ -131,5 +134,51 @@ export function resolveCardEffect(
       creatureId: card.modifyAction.creatureId,
       action: card.modifyAction.action,
     }));
+  }
+
+  // ── summon ──
+  if (effects.summon !== undefined) {
+    const template = getSummonTemplate(effects.summon as string);
+    const targetPos = state.battle.targetPosition;
+    if (template && targetPos) {
+      // Verify cell is unoccupied
+      const allCreatures = [...state.battleCreatures.playerCreatures, ...state.battleCreatures.enemyCreatures];
+      const occupied = allCreatures.some(
+        c => c.gridPosition && c.gridPosition.col === targetPos.col && c.gridPosition.row === targetPos.row
+      );
+      if (!occupied) {
+        const summoned: PlayerCreature = {
+          id: `summon-${template.id}-${Date.now()}`,
+          speciesId: template.id,
+          name: template.name,
+          side: 'player',
+          maxHp: template.maxHp,
+          currentHp: template.maxHp,
+          block: 0,
+          initiative: template.initiative,
+          passive: null,
+          buffs: [],
+          debuffs: [],
+          isAlive: true,
+          isSummoned: true,
+          spriteId: template.spriteId,
+          gridPosition: { col: targetPos.col, row: targetPos.row },
+          cards: [],
+          defaultAction: { ...template.action },
+          currentAction: { ...template.action },
+          level: 1,
+          experience: 0,
+          experienceToNextLevel: 0,
+          formationPosition: { col: 0, row: 0 },
+        };
+        dispatch(battleCreaturesState.addPlayerCreature(summoned));
+        dispatch(battleState.addToInitiativeQueue({
+          creatureId: summoned.id,
+          side: 'player',
+          initiative: summoned.initiative,
+          hasActed: false,
+        }));
+      }
+    }
   }
 }

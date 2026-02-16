@@ -7,11 +7,13 @@ import { MapLayer } from './Layers/02_Map'
 import { AudioEngine } from './audio'
 import { layerMusicMap } from './audio/audioRegistry'
 import AudioSettings from './components/AudioSettings/AudioSettings'
+import InventoryOverlay from './components/InventoryOverlay/InventoryOverlay'
 
 function App() {
 
   const [layerContext, setLayerContext] = useState("Menu")
   const [showAudioSettings, setShowAudioSettings] = useState(false)
+  const [showInventory, setShowInventory] = useState(false)
 
   // Background music follows active layer
   useEffect(() => {
@@ -23,8 +25,8 @@ function App() {
 
   return (
     <>
-      <MapLayer layerContext={layerContext} setLayerContext={setLayerContext}/>
-      <FightLayer layerContext={layerContext} setLayerContext={setLayerContext}/>
+      <MapLayer layerContext={layerContext} setLayerContext={setLayerContext} onOpenInventory={() => setShowInventory(true)}/>
+      <FightLayer layerContext={layerContext} setLayerContext={setLayerContext} onOpenInventory={() => setShowInventory(true)}/>
       <BackgroundLayer layerContext={layerContext} setLayerContext={setLayerContext} />
 
       <button
@@ -36,6 +38,9 @@ function App() {
       </button>
       {showAudioSettings && (
         <AudioSettings onClose={() => setShowAudioSettings(false)} />
+      )}
+      {showInventory && (
+        <InventoryOverlay onClose={() => setShowInventory(false)} isInFight={layerContext === 'Fight'} />
       )}
     </>
   )

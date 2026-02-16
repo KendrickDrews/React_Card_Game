@@ -48,6 +48,12 @@ export const battleCreaturesSlice = createSlice({
       state.playerCreatures = [];
       state.enemyCreatures = [];
     },
+    addPlayerCreature: (state, action: PayloadAction<PlayerCreature>) => {
+      state.playerCreatures.push(action.payload);
+    },
+    addEnemyCreature: (state, action: PayloadAction<EnemyCreature>) => {
+      state.enemyCreatures.push(action.payload);
+    },
 
     // === Generic creature operations ===
 
@@ -65,6 +71,17 @@ export const battleCreaturesSlice = createSlice({
           creature.isAlive = false;
         }
       });
+      // Summoned creatures disappear on death — remove from array entirely
+      const { creatureId } = action.payload;
+      const pcIdx = state.playerCreatures.findIndex(c => c.id === creatureId);
+      if (pcIdx !== -1 && !state.playerCreatures[pcIdx].isAlive && state.playerCreatures[pcIdx].isSummoned) {
+        state.playerCreatures.splice(pcIdx, 1);
+        return;
+      }
+      const ecIdx = state.enemyCreatures.findIndex(c => c.id === creatureId);
+      if (ecIdx !== -1 && !state.enemyCreatures[ecIdx].isAlive && state.enemyCreatures[ecIdx].isSummoned) {
+        state.enemyCreatures.splice(ecIdx, 1);
+      }
     },
     healCreature: (state, action: PayloadAction<{ creatureId: string; amount: number }>) => {
       findAndMutate(state, action.payload.creatureId, (creature) => {

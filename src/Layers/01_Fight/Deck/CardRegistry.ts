@@ -40,6 +40,15 @@ const cardTemplates: Record<string, CardTemplate> = {
     description: 'Jump at an enemy. Deal 5 damage.',
     effect: { damage: 5 },
   },
+  'cricket-summon-wall': {
+    id: 'cricket-summon-wall',
+    title: 'Summon Wall',
+    type: 'Summon',
+    manaCost: 1,
+    value: 0,
+    description: 'Place a Stone Wall (8 HP) on an ally cell.',
+    effect: { summon: 'stone_wall' },
+  },
 
   // Sun cards
   'sun-flare': {
@@ -278,6 +287,15 @@ const cardTemplates: Record<string, CardTemplate> = {
     description: 'Lay a sticky trap. Deal 3 AOE damage in a line.',
     effect: { aoeDamage: 3, aoeShape: 'line-h-1' },
   },
+  'spider-spike-snare': {
+    id: 'spider-spike-snare',
+    title: 'Spike Snare',
+    type: 'Summon',
+    manaCost: 2,
+    value: 0,
+    description: 'Place a Spike Trap (3 HP) in enemy territory.',
+    effect: { summon: 'spike_trap' },
+  },
 
   // ── Dragonfly cards ──
 
@@ -346,6 +364,45 @@ const cardTemplates: Record<string, CardTemplate> = {
     value: 0,
     description: 'Slide into the target, pushing them left 3.',
     effect: { pushDirection: 'left', pushDistance: 3 },
+  },
+
+  // ── Scarab cards ──
+
+  'scarab-summon-wisp': {
+    id: 'scarab-summon-wisp',
+    title: 'Conjure Wisp',
+    type: 'Summon',
+    manaCost: 1,
+    value: 0,
+    description: 'Summon a Spirit Wisp (3 HP) on an ally cell.',
+    effect: { summon: 'spirit_wisp' },
+  },
+  'scarab-summon-wall': {
+    id: 'scarab-summon-wall',
+    title: 'Raise Barrier',
+    type: 'Summon',
+    manaCost: 1,
+    value: 0,
+    description: 'Place a Stone Wall (8 HP) on an ally cell.',
+    effect: { summon: 'stone_wall' },
+  },
+  'scarab-scratch': {
+    id: 'scarab-scratch',
+    title: 'Scarab Scratch',
+    type: 'Attack',
+    manaCost: 1,
+    value: 2,
+    description: 'A quick scratch. Deal 2 damage.',
+    effect: { damage: 2 },
+  },
+  'scarab-shell': {
+    id: 'scarab-shell',
+    title: 'Scarab Shell',
+    type: 'Skill',
+    manaCost: 1,
+    value: 4,
+    description: 'Retreat into shell. Gain 4 block.',
+    effect: { addBlock: 4 },
   },
 };
 

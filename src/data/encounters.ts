@@ -359,6 +359,41 @@ const swampHydra: EnemyCreature = {
   ],
 };
 
+const hiveQueen: EnemyCreature = {
+  id: 'enemy-hive-queen',
+  speciesId: 'hive-queen',
+  name: 'Hive Queen',
+  side: 'enemy',
+  maxHp: 28,
+  currentHp: 28,
+  block: 0,
+  initiative: 6,
+  passive: null,
+  buffs: [],
+  debuffs: [],
+  isAlive: true,
+  spriteId: 'hive-queen',
+  patternIndex: 0,
+  pattern: [
+    {
+      action: { id: 'queen-sting', name: 'Royal Sting', description: 'Deals 5 damage.', targetType: 'single_enemy', effect: { damage: 5 } },
+      intentIcon: 'attack',
+    },
+    {
+      action: { id: 'queen-summon', name: 'Hatch Drone', description: 'Summons a Hive Drone.', targetType: 'self', effect: { summon: 'hive_drone' } },
+      intentIcon: 'buff',
+    },
+    {
+      action: { id: 'queen-rally', name: 'Rally', description: 'Gains 6 block.', targetType: 'self', effect: { addBlock: 6 } },
+      intentIcon: 'defend',
+    },
+    {
+      action: { id: 'queen-swarm', name: 'Swarm', description: 'Deals 3 damage to all enemies.', targetType: 'all_enemies', effect: { damage: 3 } },
+      intentIcon: 'attack',
+    },
+  ],
+};
+
 // ── Encounter Pools ──
 
 export const fightEncounters: EncounterDefinition[] = [
@@ -371,6 +406,7 @@ export const fightEncounters: EncounterDefinition[] = [
 export const eliteEncounters: EncounterDefinition[] = [
   { id: 'elite-golems-lair', name: "Golem's Lair", enemies: [stoneGolem] },
   { id: 'elite-drakes-den', name: "Drake's Den", enemies: [venomDrake, shadowRat] },
+  { id: 'elite-hive-queen', name: 'Hive Queen', enemies: [hiveQueen] },
 ];
 
 export const bossEncounters: EncounterDefinition[] = [

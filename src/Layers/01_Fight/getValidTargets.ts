@@ -1,6 +1,7 @@
 import { PlayingCard } from '../../types/card';
 import { PlayerCreature, EnemyCreature } from '../../types/creature';
 import { TargetingMode } from '../../redux/slices/Battle/battleSlice';
+import { getSummonTemplate } from '../../data/summonRegistry';
 
 export interface TargetingInfo {
   mode: TargetingMode;
@@ -15,6 +16,17 @@ export function getValidTargets(
   const effects = card.effect;
   const alivePlayerIds = playerCreatures.filter(c => c.isAlive).map(c => c.id);
   const aliveEnemyIds = enemyCreatures.filter(c => c.isAlive).map(c => c.id);
+
+  // Summon cards target an empty cell in the appropriate zone
+  if (effects.summon) {
+    const template = getSummonTemplate(effects.summon as string);
+    if (template) {
+      return {
+        mode: template.zone === 'ally' ? 'ally_cell' : 'enemy_cell',
+        validTargetIds: [],
+      };
+    }
+  }
 
   // Cards that modify an action target a specific creature
   if (card.modifyAction) {

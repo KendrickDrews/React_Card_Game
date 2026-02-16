@@ -2,6 +2,7 @@ import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectMenuScreen } from '../../redux/slices/Menu/menuSelector';
 import { menuState } from '../../redux/slices/Menu/menuSlice';
 import { teamActions } from '../../redux/slices/Team/teamSlice';
+import { inventoryActions } from '../../redux/slices/Inventory/inventorySlice';
 import { selectDraftFormation, selectCanStartRun } from '../../redux/slices/Menu/menuSelector';
 import { instantiateCreature } from '../../data/creatureRegistry';
 import MainMenu from './MainMenu';
@@ -22,8 +23,9 @@ const BackgroundLayer = ({ layerContext, setLayerContext }: BackgroundLayerProps
   const handleStartRun = () => {
     if (!canStart) return;
 
-    // Reset roster and populate from formation grid positions
+    // Reset roster/inventory and populate from formation grid positions
     dispatch(teamActions.resetRoster());
+    dispatch(inventoryActions.resetInventory());
     for (const [key, speciesId] of Object.entries(draftFormation)) {
       const [col, row] = key.split(',').map(Number);
       const creature = instantiateCreature(speciesId, { col, row });

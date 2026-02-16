@@ -57,6 +57,7 @@ export interface CreatureActionEffect {
   addBlock?: number;
   applyBuff?: { type: BuffType; value: number; duration: number };
   applyDebuff?: { type: DebuffType; value: number; duration: number };
+  summon?: string; // summon template ID
 }
 
 export interface CreatureAction {
@@ -88,6 +89,7 @@ export interface BaseCreature {
   buffs: StatusEffect[];
   debuffs: StatusEffect[];
   isAlive: boolean;
+  isSummoned?: boolean;
   spriteId: string;
   gridPosition?: GridPosition; // assigned at battle load time
 }

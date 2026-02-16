@@ -100,6 +100,18 @@ export const battleSlice = createSlice({
     advanceInitiative: (state) => {
       state.currentInitiativeIndex += 1;
     },
+    addToInitiativeQueue: (state, action: PayloadAction<InitiativeEntry>) => {
+      // Insert sorted by initiative (highest first), after existing entries with same value
+      const entry = action.payload;
+      let insertAt = state.initiativeQueue.length;
+      for (let i = 0; i < state.initiativeQueue.length; i++) {
+        if (state.initiativeQueue[i].initiative < entry.initiative) {
+          insertAt = i;
+          break;
+        }
+      }
+      state.initiativeQueue.splice(insertAt, 0, entry);
+    },
     resetInitiative: (state) => {
       state.initiativeQueue = [];
       state.currentInitiativeIndex = 0;

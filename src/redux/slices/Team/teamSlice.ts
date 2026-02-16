@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { PlayerCreature } from '../../../types/creature';
+import { GridPosition, PlayerCreature } from '../../../types/creature';
 
 export interface TeamState {
   roster: PlayerCreature[];
@@ -79,6 +79,24 @@ export const teamSlice = createSlice({
         creature.buffs = [];
         creature.debuffs = [];
       }
+    },
+    updateFormationPosition: (state, action: PayloadAction<{ creatureId: string; formationPosition: GridPosition }>) => {
+      const creature = state.roster.find(c => c.id === action.payload.creatureId);
+      if (creature) {
+        creature.formationPosition = action.payload.formationPosition;
+      }
+    },
+    swapActiveCreature: (state, action: PayloadAction<{ activeId: string; reserveId: string }>) => {
+      const { activeId, reserveId } = action.payload;
+      const active = state.roster.find(c => c.id === activeId);
+      const reserve = state.roster.find(c => c.id === reserveId);
+      if (!active || !reserve) return;
+
+      // Reserve inherits the departing creature's formation position
+      reserve.formationPosition = { ...active.formationPosition };
+
+      // Swap in active team array
+      state.activeTeam = state.activeTeam.map(id => id === activeId ? reserveId : id);
     },
   },
 });

@@ -3,12 +3,12 @@ import { RootState } from '../../redux';
 import { Action, ThunkAction } from '@reduxjs/toolkit';
 import { battleCreaturesState } from '../../redux/slices/BattleCreatures/battleCreaturesSlice';
 import { InitiativeEntry, PlayerCreature, EnemyCreature } from '../../types/creature';
-import { getCardsForCreature } from './Deck/CardRegistry';
+import { getCardsForCreature, cardTemplates } from './Deck/CardRegistry';
 import { resolveCreatureAction } from './resolveCreatureAction';
 import { getAnimationName } from './animationRegistry';
 import { grasslandsEncounter, getEncounterForNode } from '../../data/encounters';
 import { MapNode } from '../../types/map';
-import { PlayingCard } from '../../types/card';
+import { CardEffects, PlayingCard } from '../../types/card';
 
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
@@ -75,11 +75,33 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
         }
         dispatch(battleCreaturesState.loadEnemyCreatures(enemies));
 
-        // Compose deck from all active team creatures' cards
+        // Compose deck from all active team creatures' cards + neutral cards
         const allCards: PlayingCard[] = [];
         for (const creature of activeCreatures) {
           allCards.push(...getCardsForCreature(creature));
         }
+
+        const neutralCardIds = getState().inventory.neutralCards;
+        const neutralCounts: Record<string, number> = {};
+        for (const cardId of neutralCardIds) {
+          const template = cardTemplates[cardId];
+          if (template) {
+            const count = (neutralCounts[cardId] ?? 0) + 1;
+            neutralCounts[cardId] = count;
+            allCards.push({
+              id: `neutral-${cardId}-${count}`,
+              creatureId: 'neutral',
+              title: template.title,
+              type: template.type,
+              manaCost: template.manaCost,
+              value: template.value,
+              description: template.description,
+              effect: template.effect as CardEffects,
+              discard: false,
+            });
+          }
+        }
+
         dispatch(playerState.loadDeck(allCards));
         dispatch(playerState.shuffleDeckToDraw());
         dispatch(battleState.setBattleStart(false));
@@ -195,7 +217,9 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
 
         // Check for battle end
         const stateAfter = getState().battleCreatures;
-        const allPlayersDead = stateAfter.playerCreatures.every(c => !c.isAlive);
+        const allPlayersDead = stateAfter.playerCreatures
+          .filter(c => !c.isSummoned)
+          .every(c => !c.isAlive);
         const allEnemiesDead = stateAfter.enemyCreatures.every(c => !c.isAlive);
 
         if (allPlayersDead) {

@@ -13,7 +13,7 @@ const Cricket = ({width}:{width: number}) => {
 
   // To make the hover better, give the card container a child container which moves up on hover
     return (
-    <div className="character-img-container">
+    <div style={{width: width}} className="character-img-container">
         <img width={width} className="unit-img" style={{}} src={eye} />
         <img width={width} className="unit-img"  src={main} />
         <img width={width} className="unit-img"  src={socks} />

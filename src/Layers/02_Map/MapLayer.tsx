@@ -17,9 +17,10 @@ import ShopScreen from './ShopScreen';
 interface LayerContext {
   layerContext: string;
   setLayerContext: (value: string) => void;
+  onOpenInventory: () => void;
 }
 
-const MapLayer = ({ layerContext, setLayerContext }: LayerContext) => {
+const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerContext) => {
   const dispatch = useAppDispatch();
   const currentMap = useAppSelector(selectCurrentMap);
   const currentNodeId = useAppSelector(selectCurrentNodeId);
@@ -102,7 +103,7 @@ const MapLayer = ({ layerContext, setLayerContext }: LayerContext) => {
               Return to Fight
             </div>
           )}
-          <div>deck</div>
+          <div onClick={onOpenInventory} style={{ cursor: 'pointer' }}>deck</div>
           <div>controls</div>
         </div>
       </div>

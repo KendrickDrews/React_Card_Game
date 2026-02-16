@@ -10,7 +10,7 @@ export const creatureSpecies: Record<string, CreatureSpecies> = {
     maxHp: 15,
     initiative: 7,
     spriteId: 'cricket',
-    cards: ['cricket-slash', 'cricket-slash', 'cricket-chirp', 'cricket-leap', 'mana-crystal'],
+    cards: ['cricket-slash', 'cricket-slash', 'cricket-chirp', 'cricket-leap', 'cricket-summon-wall', 'mana-crystal'],
     defaultAction: {
       id: 'cricket-auto-slash',
       name: 'Auto Slash',
@@ -165,7 +165,7 @@ export const creatureSpecies: Record<string, CreatureSpecies> = {
     maxHp: 10,
     initiative: 5,
     spriteId: 'spider',
-    cards: ['spider-bite', 'spider-web', 'spider-trap', 'mana-crystal'],
+    cards: ['spider-bite', 'spider-web', 'spider-trap', 'spider-spike-snare', 'mana-crystal'],
     defaultAction: {
       id: 'spider-auto-bite',
       name: 'Fang',
@@ -226,6 +226,23 @@ export const creatureSpecies: Record<string, CreatureSpecies> = {
       trigger: 'on_ally_death',
       effect: { heal: 5 },
     },
+  },
+  scarab: {
+    speciesId: 'scarab',
+    name: 'Scarab',
+    description: 'A mystic beetle that summons spirit wisps and stone barriers.',
+    maxHp: 12,
+    initiative: 4,
+    spriteId: 'scarab',
+    cards: ['scarab-summon-wisp', 'scarab-summon-wall', 'scarab-scratch', 'scarab-shell'],
+    defaultAction: {
+      id: 'scarab-auto-summon',
+      name: 'Conjure Wisp',
+      description: 'Scarab summons a Spirit Wisp.',
+      targetType: 'self',
+      effect: { summon: 'spirit_wisp' },
+    },
+    passive: null,
   },
 };
 

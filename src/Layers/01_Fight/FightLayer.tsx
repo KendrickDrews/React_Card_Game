@@ -17,14 +17,16 @@ import { mapActions } from "../../redux/slices/Map/mapSlice";
 import { teamActions } from "../../redux/slices/Team/teamSlice";
 import { battleCreaturesState } from "../../redux/slices/BattleCreatures/battleCreaturesSlice";
 import { menuState } from "../../redux/slices/Menu/menuSlice";
+import { inventoryActions } from "../../redux/slices/Inventory/inventorySlice";
 import { AudioEngine } from "../../audio";
 
 interface LayerContext {
   layerContext: string;
   setLayerContext: (value: string) => void;
+  onOpenInventory: () => void;
 }
 
-const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
+const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerContext) => {
   const dispatch = useAppDispatch();
   const { phase, useCard, activeCard, targetCreatureId } = useAppSelector(selectBattleState);
   const playerSelector = useAppSelector(selectPlayerState);
@@ -193,6 +195,9 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
     return ids;
   }, [hoveredEnemyId, enemyCreatures, playerCreatures]);
 
+  // Is the active card a summon card?
+  const isSummonCard = !!(activeCard?.effect?.summon);
+
   // Clear AOE hover when targeting mode changes
   useEffect(() => {
     setHoveredCell(null);
@@ -211,10 +216,13 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
       const zone = targetingMode === 'enemy_cell' ? ENEMY_ZONE : PLAYER_ZONE;
       for (let col = zone.colMin; col <= zone.colMax; col++) {
         for (let row = zone.rowMin; row <= zone.rowMax; row++) {
-          const cellEl = document.getElementById(`${col},${row}`);
+          const key = `${col},${row}`;
+          // Summon cards skip occupied cells
+          if (isSummonCard && creaturesByPosition.has(key)) continue;
+          const cellEl = document.getElementById(key);
           if (!cellEl) continue;
           const cellRect = cellEl.getBoundingClientRect();
-          rects.set(`${col},${row}`, new DOMRect(
+          rects.set(key, new DOMRect(
             cellRect.left - containerRect.left,
             cellRect.top - containerRect.top,
             cellRect.width,
@@ -240,7 +248,7 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
     }
 
     setTargetRects(rects);
-  }, [isTargetingActive, isCellMode, targetingMode, playerCreatures, enemyCreatures, validTargetIds]);
+  }, [isTargetingActive, isCellMode, targetingMode, playerCreatures, enemyCreatures, validTargetIds, isSummonCard, creaturesByPosition]);
 
   useEffect(() => {
     computeTargetRects();
@@ -255,11 +263,14 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
     const cells = new Set<string>();
     for (let col = zone.colMin; col <= zone.colMax; col++) {
       for (let row = zone.rowMin; row <= zone.rowMax; row++) {
-        cells.add(`${col},${row}`);
+        const key = `${col},${row}`;
+        // Summon cards can only target empty cells
+        if (isSummonCard && creaturesByPosition.has(key)) continue;
+        cells.add(key);
       }
     }
     return cells;
-  }, [isCellMode, targetingMode]);
+  }, [isCellMode, targetingMode, isSummonCard, creaturesByPosition]);
 
   const getZoneClass = (col: number, row: number): string => {
     if (isInZone(col, row, PLAYER_ZONE)) return 'player-zone';
@@ -277,7 +288,7 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
         <div className="info-floor">Current Floor</div>
         <div className="info-system">
           <div onClick={() => setLayerContext("Map")}>Map</div>
-          <div>deck</div>
+          <div onClick={onOpenInventory} style={{ cursor: 'pointer' }}>deck</div>
           <div>controls</div>
         </div>
       </div>
@@ -409,6 +420,7 @@ const FightLayer = ({ layerContext, setLayerContext }: LayerContext) => {
                     dispatch(battleState.clearTargeting());
                     dispatch(battleState.setBattleResult('ongoing'));
                     dispatch(teamActions.resetRoster());
+                    dispatch(inventoryActions.resetInventory());
                     dispatch(menuState.resetMenu());
                     setLayerContext('Menu');
                   }}
