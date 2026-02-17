@@ -93,6 +93,12 @@ export const battleCreaturesSlice = createSlice({
         creature.block += action.payload.amount;
       });
     },
+    applyMaxHpBonus: (state, action: PayloadAction<{ creatureId: string; amount: number }>) => {
+      findAndMutate(state, action.payload.creatureId, (creature) => {
+        creature.maxHp += action.payload.amount;
+        creature.currentHp = Math.min(creature.currentHp + action.payload.amount, creature.maxHp);
+      });
+    },
     resetAllBlock: (state) => {
       for (const c of state.playerCreatures) c.block = 0;
       for (const c of state.enemyCreatures) c.block = 0;

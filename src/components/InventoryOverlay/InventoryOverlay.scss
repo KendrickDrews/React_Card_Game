@@ -490,6 +490,195 @@
   font-size: 12px;
 }
 
+// === Slot Items ===
+
+.detail-slots {
+  margin-top: 16px;
+
+  h5 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #aaa;
+  }
+}
+
+.creature-slots {
+  display: flex;
+  gap: 6px;
+}
+
+.slot-box {
+  flex: 1;
+  min-height: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  font-size: 10px;
+  position: relative;
+
+  &.filled {
+    border-width: 2px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  &.empty {
+    border-style: dashed;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #555;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #888;
+    }
+  }
+
+  .slot-item-name {
+    font-weight: bold;
+    font-size: 10px;
+    margin-bottom: 2px;
+  }
+
+  .slot-item-desc {
+    font-size: 9px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+
+  .slot-unequip-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    color: #aaa;
+    font-size: 9px;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-family: monospace;
+    margin-top: auto;
+
+    &:hover {
+      color: #e57373;
+      border-color: #e57373;
+    }
+  }
+}
+
+.slot-item-picker {
+  margin-top: 8px;
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  .picker-empty {
+    color: #666;
+    font-size: 11px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .picker-close {
+    width: 100%;
+    margin-top: 4px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #888;
+    font-size: 10px;
+    padding: 4px;
+    cursor: pointer;
+    font-family: monospace;
+
+    &:hover {
+      color: #ccc;
+    }
+  }
+}
+
+.slot-item-row {
+  padding: 6px 8px;
+  border-left: 3px solid #888;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .slot-item-row-name {
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  .slot-item-row-desc {
+    font-size: 9px;
+    color: #999;
+  }
+
+  .slot-item-row-rarity {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+}
+
+// Items tab - slot items bag display
+
+.items-slot-items {
+  h4 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #aaa;
+  }
+}
+
+.slot-item-bag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slot-item-bag-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid #888;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+
+  .slot-bag-name {
+    font-weight: bold;
+    font-size: 12px;
+    min-width: 120px;
+  }
+
+  .slot-bag-desc {
+    flex: 1;
+    font-size: 11px;
+    color: #999;
+  }
+
+  .slot-bag-rarity {
+    font-size: 10px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+}
+
 // === Disabled state (fight mode) ===
 
 .inventory-disabled {

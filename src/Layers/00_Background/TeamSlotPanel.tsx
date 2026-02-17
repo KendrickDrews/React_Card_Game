@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDraftFormation, selectDraftFormationFull, selectSelectedSpecies, selectDraftTeamCount } from '../../redux/slices/Menu/menuSelector';
+import { selectAllUnlocks } from '../../redux/slices/Stats/statsSelector';
 import { menuState, FORMATION_COLS, FORMATION_ROWS, MAX_TEAM_SIZE } from '../../redux/slices/Menu/menuSlice';
+import { unlockableCreatures } from '../../data/unlockableCreatures';
+
+const unlockBySpecies = new Map(
+  unlockableCreatures.map(u => [u.speciesId, u])
+);
 
 const TeamSlotPanel = () => {
   const dispatch = useAppDispatch();
@@ -9,6 +15,13 @@ const TeamSlotPanel = () => {
   const formationFull = useAppSelector(selectDraftFormationFull);
   const selectedSpeciesId = useAppSelector(selectSelectedSpecies);
   const teamCount = useAppSelector(selectDraftTeamCount);
+  const unlocks = useAppSelector(selectAllUnlocks);
+
+  const isSpeciesUnlocked = (speciesId: string) => {
+    const entry = unlockBySpecies.get(speciesId);
+    if (!entry) return true;
+    return unlocks[entry.unlock.id]?.unlockedAt !== null && unlocks[entry.unlock.id] !== undefined;
+  };
   const [swapSource, setSwapSource] = useState<{ col: number; row: number } | null>(null);
 
   const handleCellClick = (col: number, row: number) => {
@@ -32,8 +45,8 @@ const TeamSlotPanel = () => {
       return;
     }
 
-    // If cell is empty and a species is selected, assign it (if under max)
-    if (selectedSpeciesId && teamCount < MAX_TEAM_SIZE) {
+    // If cell is empty and a species is selected, assign it (if under max and unlocked)
+    if (selectedSpeciesId && teamCount < MAX_TEAM_SIZE && isSpeciesUnlocked(selectedSpeciesId)) {
       dispatch(menuState.assignSpeciesToCell({ col, row, speciesId: selectedSpeciesId }));
     }
   };

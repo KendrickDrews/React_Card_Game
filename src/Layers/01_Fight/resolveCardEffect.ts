@@ -7,6 +7,7 @@ import { scanRowForTarget, getCreaturesInAoe, executePush, parseAoeShape } from 
 import { PushDirection } from '../../types/battleHelpers';
 import { getSummonTemplate } from '../../data/summonRegistry';
 import { battleState } from '../../redux/slices/Battle/battleSlice';
+import { getSlotEffectTotal } from './resolveSlotEffects';
 
 export function resolveCardEffect(
   dispatch: AppDispatch,
@@ -17,6 +18,19 @@ export function resolveCardEffect(
   const effects = card.effect;
   const state = getState();
 
+  // Compute slot item bonuses for the creature that owns this card
+  let dmgBonus = 0;
+  let healBonus = 0;
+  let blockBonus = 0;
+  if (card.creatureId !== 'neutral') {
+    const ownerCreature = state.battleCreatures.playerCreatures.find(c => c.id === card.creatureId);
+    if (ownerCreature) {
+      dmgBonus = getSlotEffectTotal(ownerCreature, 'flat_damage_bonus');
+      healBonus = getSlotEffectTotal(ownerCreature, 'flat_heal_bonus');
+      blockBonus = getSlotEffectTotal(ownerCreature, 'flat_block_bonus');
+    }
+  }
+
   // Processing order: damage → heal → addMana → addBlock → aoeDamage → lineDamage → pushDistance
 
   // ── damage ──
@@ -26,20 +40,21 @@ export function resolveCardEffect(
     if (target) {
       dispatch(battleCreaturesState.damageCreature({
         creatureId: target,
-        amount: effects.damage as number,
+        amount: (effects.damage as number) + dmgBonus,
       }));
     }
   }
 
   // ── heal ──
   if (effects.heal !== undefined) {
-    const healTarget = targetCreatureId
+    // If the card also deals damage, the clicked target is an enemy — heal the card's owner instead
+    const healTarget = (effects.damage === undefined ? targetCreatureId : null)
       ?? state.battleCreatures.playerCreatures.find(c => c.id === card.creatureId && c.isAlive)?.id
       ?? state.battleCreatures.playerCreatures.find(c => c.isAlive)?.id;
     if (healTarget) {
       dispatch(battleCreaturesState.healCreature({
         creatureId: healTarget,
-        amount: effects.heal as number,
+        amount: (effects.heal as number) + healBonus,
       }));
     }
   }
@@ -57,7 +72,7 @@ export function resolveCardEffect(
     if (blockTarget) {
       dispatch(battleCreaturesState.addBlock({
         creatureId: blockTarget,
-        amount: effects.addBlock as number,
+        amount: (effects.addBlock as number) + blockBonus,
       }));
     }
   }
@@ -80,7 +95,7 @@ export function resolveCardEffect(
         if (creature.isAlive) {
           dispatch(battleCreaturesState.damageCreature({
             creatureId: creature.id,
-            amount: effects.aoeDamage as number,
+            amount: (effects.aoeDamage as number) + dmgBonus,
           }));
         }
       }
@@ -98,7 +113,7 @@ export function resolveCardEffect(
       if (enemy) {
         dispatch(battleCreaturesState.damageCreature({
           creatureId: enemy.id,
-          amount: effects.lineDamage as number,
+          amount: (effects.lineDamage as number) + dmgBonus,
         }));
       }
     } else {
@@ -107,7 +122,7 @@ export function resolveCardEffect(
       if (hit && hit.creature.isAlive) {
         dispatch(battleCreaturesState.damageCreature({
           creatureId: hit.creature.id,
-          amount: effects.lineDamage as number,
+          amount: (effects.lineDamage as number) + dmgBonus,
         }));
       }
     }
@@ -170,6 +185,7 @@ export function resolveCardEffect(
           experience: 0,
           experienceToNextLevel: 0,
           formationPosition: { col: 0, row: 0 },
+          equippedSlots: [],
         };
         dispatch(battleCreaturesState.addPlayerCreature(summoned));
         dispatch(battleState.addToInitiativeQueue({

@@ -1,7 +1,13 @@
 import { useAppSelector } from '../../redux/hooks';
 import { selectSelectedSpecies } from '../../redux/slices/Menu/menuSelector';
+import { selectAllUnlocks } from '../../redux/slices/Stats/statsSelector';
 import { creatureSpecies } from '../../data/creatureRegistry';
 import { cardTemplates } from '../01_Fight/Deck/CardRegistry';
+import { unlockableCreatures } from '../../data/unlockableCreatures';
+
+const unlockBySpecies = new Map(
+  unlockableCreatures.map(u => [u.speciesId, u])
+);
 
 interface CreatureDetailsProps {
   hoveredSpeciesId: string | null;
@@ -9,6 +15,7 @@ interface CreatureDetailsProps {
 
 const CreatureDetails = ({ hoveredSpeciesId }: CreatureDetailsProps) => {
   const selectedSpeciesId = useAppSelector(selectSelectedSpecies);
+  const unlocks = useAppSelector(selectAllUnlocks);
 
   // Hovered takes priority over selected
   const displayId = hoveredSpeciesId ?? selectedSpeciesId;
@@ -18,6 +25,23 @@ const CreatureDetails = ({ hoveredSpeciesId }: CreatureDetailsProps) => {
     return (
       <div className="creature-details empty">
         <p>Hover or select a creature to see details</p>
+      </div>
+    );
+  }
+
+  // Check if this creature is locked
+  const lockEntry = unlockBySpecies.get(species.speciesId);
+  const isLocked = lockEntry !== undefined &&
+    (unlocks[lockEntry.unlock.id] === undefined || unlocks[lockEntry.unlock.id].unlockedAt === null);
+
+  if (isLocked) {
+    return (
+      <div className="creature-details locked">
+        <h3>???</h3>
+        <p className="creature-description">This creature has not been unlocked yet.</p>
+        <div className="unlock-condition">
+          <strong>Unlock:</strong> {lockEntry!.conditionLabel}
+        </div>
       </div>
     );
   }

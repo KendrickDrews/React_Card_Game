@@ -1,16 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Artifact } from '../../../types/inventory';
+import { SlotItem } from '../../../types/slotItem';
 
 export interface InventoryState {
   gold: number;
   artifacts: Artifact[];
   neutralCards: string[];
+  slotItems: SlotItem[];
 }
 
 const initInventoryState: InventoryState = {
   gold: 0,
   artifacts: [],
   neutralCards: [],
+  slotItems: [],
 };
 
 export const inventorySlice = createSlice({
@@ -35,6 +38,12 @@ export const inventorySlice = createSlice({
     removeNeutralCard: (state, action: PayloadAction<string>) => {
       const idx = state.neutralCards.indexOf(action.payload);
       if (idx !== -1) state.neutralCards.splice(idx, 1);
+    },
+    addSlotItem: (state, action: PayloadAction<SlotItem>) => {
+      state.slotItems.push(action.payload);
+    },
+    removeSlotItem: (state, action: PayloadAction<string>) => {
+      state.slotItems = state.slotItems.filter(i => i.instanceId !== action.payload);
     },
     resetInventory: () => initInventoryState,
   },

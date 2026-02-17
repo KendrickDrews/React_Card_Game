@@ -1,3 +1,5 @@
+import { SlotItem } from './slotItem';
+
 // === Status Effects (types defined, logic stubbed for later) ===
 
 export type BuffType = 'strength' | 'defense' | 'haste' | 'regeneration' | 'thorns';
@@ -105,6 +107,7 @@ export interface PlayerCreature extends BaseCreature {
   experience: number;
   experienceToNextLevel: number;
   formationPosition: GridPosition; // position within the player zone grid, maps directly to battlefield
+  equippedSlots: SlotItem[];  // max 3
 }
 
 // === Enemy Creature ===

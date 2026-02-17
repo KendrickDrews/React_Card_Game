@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { GridPosition, PlayerCreature } from '../../../types/creature';
+import { SlotItem } from '../../../types/slotItem';
 
 export interface TeamState {
   roster: PlayerCreature[];
@@ -84,6 +85,20 @@ export const teamSlice = createSlice({
       const creature = state.roster.find(c => c.id === action.payload.creatureId);
       if (creature) {
         creature.formationPosition = action.payload.formationPosition;
+      }
+    },
+    equipSlotItem: (state, action: PayloadAction<{ creatureId: string; item: SlotItem }>) => {
+      const creature = state.roster.find(c => c.id === action.payload.creatureId);
+      if (creature && creature.equippedSlots.length < 3) {
+        creature.equippedSlots.push(action.payload.item);
+      }
+    },
+    unequipSlotItem: (state, action: PayloadAction<{ creatureId: string; instanceId: string }>) => {
+      const creature = state.roster.find(c => c.id === action.payload.creatureId);
+      if (creature) {
+        creature.equippedSlots = creature.equippedSlots.filter(
+          i => i.instanceId !== action.payload.instanceId
+        );
       }
     },
     swapActiveCreature: (state, action: PayloadAction<{ activeId: string; reserveId: string }>) => {

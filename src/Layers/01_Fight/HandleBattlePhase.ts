@@ -1,5 +1,6 @@
 import { battleState, playerState } from '../../redux';
 import { RootState } from '../../redux';
+import { statsActions } from '../../redux/slices/Stats/statsSlice';
 import { Action, ThunkAction } from '@reduxjs/toolkit';
 import { battleCreaturesState } from '../../redux/slices/BattleCreatures/battleCreaturesSlice';
 import { InitiativeEntry, PlayerCreature, EnemyCreature } from '../../types/creature';
@@ -9,6 +10,7 @@ import { getAnimationName } from './animationRegistry';
 import { grasslandsEncounter, getEncounterForNode } from '../../data/encounters';
 import { MapNode } from '../../types/map';
 import { CardEffects, PlayingCard } from '../../types/card';
+import { getSlotEffectTotal } from './resolveSlotEffects';
 
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
@@ -49,6 +51,7 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
     // PHASE 1: TURN START
     // ============================================
     case 'turn_start': {
+      const isFirstTurn = battle.battleStart;
       if (battle.battleStart) {
         // Load active team creatures into battle
         const updatedTeam = getState().team;
@@ -105,10 +108,30 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
         dispatch(playerState.loadDeck(allCards));
         dispatch(playerState.shuffleDeckToDraw());
         dispatch(battleState.setBattleStart(false));
+
+        // First-turn slot effect: max_hp_bonus (before block reset is fine)
+        const loadedPlayerCreatures = getState().battleCreatures.playerCreatures;
+        for (const pc of loadedPlayerCreatures) {
+          const hpBonus = getSlotEffectTotal(pc, 'max_hp_bonus');
+          if (hpBonus > 0) {
+            dispatch(battleCreaturesState.applyMaxHpBonus({ creatureId: pc.id, amount: hpBonus }));
+          }
+        }
       }
 
       // Reset block on all creatures
       dispatch(battleCreaturesState.resetAllBlock());
+
+      // First-turn slot effect: start_of_combat_block (must be AFTER resetAllBlock)
+      if (isFirstTurn) {
+        const pcAfterReset = getState().battleCreatures.playerCreatures;
+        for (const pc of pcAfterReset) {
+          const combatBlock = getSlotEffectTotal(pc, 'start_of_combat_block');
+          if (combatBlock > 0) {
+            dispatch(battleCreaturesState.addBlock({ creatureId: pc.id, amount: combatBlock }));
+          }
+        }
+      }
 
       // Reset creature actions to defaults
       dispatch(battleCreaturesState.resetAllCreatureActions());
@@ -116,28 +139,68 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
       // Reset mana
       dispatch(playerState.resetMana());
 
+      // Slot effect: start_of_turn_mana
+      {
+        const alivePC = getState().battleCreatures.playerCreatures.filter(c => c.isAlive);
+        let bonusMana = 0;
+        for (const pc of alivePC) {
+          bonusMana += getSlotEffectTotal(pc, 'start_of_turn_mana');
+        }
+        if (bonusMana > 0) {
+          dispatch(playerState.increase({ state: 'mana', amount: bonusMana }));
+        }
+      }
+
       // Tick status effects (stubbed - decrements durations)
       dispatch(battleCreaturesState.tickAllStatusEffects());
 
-      // Build initiative queue
+      // Slot effect: start_of_turn_heal
+      {
+        const alivePC = getState().battleCreatures.playerCreatures.filter(c => c.isAlive);
+        for (const pc of alivePC) {
+          const healAmount = getSlotEffectTotal(pc, 'start_of_turn_heal');
+          if (healAmount > 0) {
+            dispatch(battleCreaturesState.healCreature({ creatureId: pc.id, amount: healAmount }));
+          }
+        }
+      }
+
+      // Build initiative queue (with initiative_bonus from slot items)
       const bcState = getState().battleCreatures;
       const allAlive = [
         ...bcState.playerCreatures.filter(c => c.isAlive),
         ...bcState.enemyCreatures.filter(c => c.isAlive),
       ];
       const queue: InitiativeEntry[] = allAlive
-        .map(c => ({
-          creatureId: c.id,
-          side: c.side,
-          initiative: c.initiative,
-          hasActed: false,
-        }))
+        .map(c => {
+          let init = c.initiative;
+          if (c.side === 'player') {
+            init += getSlotEffectTotal(c as PlayerCreature, 'initiative_bonus');
+          }
+          return {
+            creatureId: c.id,
+            side: c.side,
+            initiative: init,
+            hasActed: false,
+          };
+        })
         .sort((a, b) => b.initiative - a.initiative);
       dispatch(battleState.buildInitiativeQueue(queue));
 
-      // Draw hand
+      // Draw hand (with start_of_turn_draw bonus)
       if (battle.shouldDraw || getState().battle.shouldDraw) {
+        let bonusDraw = 0;
+        const alivePC = getState().battleCreatures.playerCreatures.filter(c => c.isAlive);
+        for (const pc of alivePC) {
+          bonusDraw += getSlotEffectTotal(pc, 'start_of_turn_draw');
+        }
+        if (bonusDraw > 0) {
+          dispatch(playerState.increase({ state: 'drawCount', amount: bonusDraw }));
+        }
         await drawHand(dispatch, getState);
+        if (bonusDraw > 0) {
+          dispatch(playerState.decrease({ state: 'drawCount', amount: bonusDraw }));
+        }
       }
 
       await delay(0.25);
@@ -244,6 +307,7 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
     // PHASE 5: TURN END
     // ============================================
     case 'turn_end': {
+      dispatch(statsActions.incrementTurnsTaken());
       dispatch(battleState.increaseTurn());
       await delay(0.25);
       dispatch(battleState.nextBattlePhase()); // -> turn_start (wraps)

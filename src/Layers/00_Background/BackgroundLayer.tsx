@@ -3,11 +3,13 @@ import { selectMenuScreen } from '../../redux/slices/Menu/menuSelector';
 import { menuState } from '../../redux/slices/Menu/menuSlice';
 import { teamActions } from '../../redux/slices/Team/teamSlice';
 import { inventoryActions } from '../../redux/slices/Inventory/inventorySlice';
+import { statsActions } from '../../redux/slices/Stats/statsSlice';
 import { selectDraftFormation, selectCanStartRun } from '../../redux/slices/Menu/menuSelector';
 import { instantiateCreature } from '../../data/creatureRegistry';
 import MainMenu from './MainMenu';
 import RunConfig from './RunConfig';
 import Bestiary from './Bestiary';
+import StatsScreen from './StatsScreen';
 
 interface BackgroundLayerProps {
   layerContext: string;
@@ -33,6 +35,7 @@ const BackgroundLayer = ({ layerContext, setLayerContext }: BackgroundLayerProps
       dispatch(teamActions.addCreatureToActiveTeam(creature.id));
     }
 
+    dispatch(statsActions.recordRunStart());
     dispatch(menuState.resetMenu());
     setLayerContext('Map');
   };
@@ -60,13 +63,7 @@ const BackgroundLayer = ({ layerContext, setLayerContext }: BackgroundLayerProps
           </div>
         );
       case 'stats':
-        return (
-          <div className="menu-placeholder">
-            <h2>Game Stats</h2>
-            <p>Coming soon</p>
-            <button className="menu-button" onClick={handleBack}>Back</button>
-          </div>
-        );
+        return <StatsScreen onBack={handleBack} />;
     }
   };
 

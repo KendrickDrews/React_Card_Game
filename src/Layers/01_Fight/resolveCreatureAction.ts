@@ -4,6 +4,7 @@ import { BattleCreature, CreatureAction, PlayerCreature, EnemyCreature } from '.
 import { getSummonTemplate } from '../../data/summonRegistry';
 import { PLAYER_ZONE, ENEMY_ZONE } from './gridConstants';
 import { battleState } from '../../redux/slices/Battle/battleSlice';
+import { getSlotEffectTotal } from './resolveSlotEffects';
 
 function findEmptyCell(
   state: ReturnType<() => RootState>['battleCreatures'],
@@ -79,24 +80,29 @@ export function resolveCreatureAction(
     }
   }
 
+  // Compute slot item bonuses for player creatures
+  const dmgBonus = isPlayerSide ? getSlotEffectTotal(actingCreature as PlayerCreature, 'flat_damage_bonus') : 0;
+  const healBonus = isPlayerSide ? getSlotEffectTotal(actingCreature as PlayerCreature, 'flat_heal_bonus') : 0;
+  const blockBonus = isPlayerSide ? getSlotEffectTotal(actingCreature as PlayerCreature, 'flat_block_bonus') : 0;
+
   // Apply effects to each target
   for (const target of targets) {
     if (action.effect.damage) {
       dispatch(battleCreaturesState.damageCreature({
         creatureId: target.id,
-        amount: action.effect.damage,
+        amount: action.effect.damage + dmgBonus,
       }));
     }
     if (action.effect.heal) {
       dispatch(battleCreaturesState.healCreature({
         creatureId: target.id,
-        amount: action.effect.heal,
+        amount: action.effect.heal + healBonus,
       }));
     }
     if (action.effect.addBlock) {
       dispatch(battleCreaturesState.addBlock({
         creatureId: target.id,
-        amount: action.effect.addBlock,
+        amount: action.effect.addBlock + blockBonus,
       }));
     }
   }
@@ -134,6 +140,7 @@ export function resolveCreatureAction(
             experience: 0,
             experienceToNextLevel: 0,
             formationPosition: { col: 0, row: 0 },
+            equippedSlots: [],
           };
           dispatch(battleCreaturesState.addPlayerCreature(summoned));
           dispatch(battleState.addToInitiativeQueue({

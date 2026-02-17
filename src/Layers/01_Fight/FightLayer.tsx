@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "././../../redux/hooks";
 import { battleState, playerState, selectBattleState, selectPlayerState } from "../../redux";
 import { selectPlayerCreatures, selectEnemyCreatures } from "../../redux/slices/BattleCreatures/battleCreaturesSelector";
 import { selectBattleResult, selectTargetingMode, selectValidTargetIds } from "../../redux/slices/Battle/battleSelector";
+import { selectCurrentNode } from "../../redux/slices/Map/mapSelector";
 import { handleBattlePhase } from "./HandleBattlePhase"
 import { resolveCardEffect } from "./resolveCardEffect";
 import { store } from "../../redux/store";
@@ -19,6 +20,9 @@ import { battleCreaturesState } from "../../redux/slices/BattleCreatures/battleC
 import { menuState } from "../../redux/slices/Menu/menuSlice";
 import { inventoryActions } from "../../redux/slices/Inventory/inventorySlice";
 import { AudioEngine } from "../../audio";
+import { statsActions } from "../../redux/slices/Stats/statsSlice";
+import { unlockableCreatures } from "../../data/unlockableCreatures";
+import RewardScreen from "./RewardScreen/RewardScreen";
 
 interface LayerContext {
   layerContext: string;
@@ -35,6 +39,52 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
   const battleResult = useAppSelector(selectBattleResult);
   const targetingMode = useAppSelector(selectTargetingMode);
   const validTargetIds = useAppSelector(selectValidTargetIds);
+
+  const currentNode = useAppSelector(selectCurrentNode);
+
+  const nodeType = useMemo<'fight' | 'elite' | 'boss'>(() => {
+    if (currentNode?.type === 'elite') return 'elite';
+    if (currentNode?.type === 'boss') return 'boss';
+    return 'fight';
+  }, [currentNode]);
+
+  const handleVictoryContinue = useCallback(() => {
+    // Record battle stats
+    dispatch(statsActions.recordBattleWon());
+
+    // Record defeated enemies
+    const deadEnemySpecies = enemyCreatures
+      .filter(c => !c.isAlive)
+      .map(c => c.speciesId);
+    if (deadEnemySpecies.length > 0) {
+      dispatch(statsActions.recordEnemyDefeatBatch(deadEnemySpecies));
+    }
+
+    // Check if this was a boss node → unlock boss-gated creatures
+    if (currentNode?.type === 'boss') {
+      const bossUnlocks = unlockableCreatures
+        .filter(u => u.condition.type === 'defeat_first_boss')
+        .map(u => u.unlock);
+      if (bossUnlocks.length > 0) {
+        dispatch(statsActions.grantUnlockBatch(bossUnlocks));
+      }
+    }
+
+    // Sync surviving creature HP back to persistent roster
+    const hpSync = playerCreatures.map(c => ({
+      id: c.id,
+      currentHp: c.currentHp,
+      isAlive: c.isAlive,
+    }));
+    dispatch(teamActions.syncFromBattle(hpSync));
+
+    dispatch(mapActions.completeCurrentNode());
+    dispatch(battleCreaturesState.clearBattleCreatures());
+    dispatch(playerState.resetAllPiles());
+    dispatch(battleState.clearTargeting());
+    dispatch(battleState.setBattleResult('ongoing'));
+    setLayerContext('Map');
+  }, [dispatch, enemyCreatures, playerCreatures, currentNode, setLayerContext]);
 
   const battleStationsRef = useRef<HTMLDivElement>(null);
 
@@ -72,6 +122,9 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
       }
 
       resolveCardEffect(dispatch, activeCard, targetCreatureId, store.getState);
+
+      // Track card played
+      dispatch(statsActions.incrementCardsPlayed());
 
       // Deduct mana
       dispatch(playerState.decrease({ state: 'mana', amount: activeCard.manaCost }));
@@ -384,36 +437,16 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
               {battleResult === 'victory' ? 'Victory!' : 'Defeat'}
             </div>
             {battleResult === 'victory' && (
-              <div className="rewards-placeholder">
-                <p>Rewards go here (placeholder)</p>
-                <button
-                  className="battle-result-button"
-                  onClick={() => {
-                    // Sync surviving creature HP back to persistent roster
-                    const hpSync = playerCreatures.map(c => ({
-                      id: c.id,
-                      currentHp: c.currentHp,
-                      isAlive: c.isAlive,
-                    }));
-                    dispatch(teamActions.syncFromBattle(hpSync));
-
-                    dispatch(mapActions.completeCurrentNode());
-                    dispatch(battleCreaturesState.clearBattleCreatures());
-                    dispatch(playerState.resetAllPiles());
-                    dispatch(battleState.clearTargeting());
-                    dispatch(battleState.setBattleResult('ongoing'));
-                    setLayerContext('Map');
-                  }}
-                >
-                  Continue to Map
-                </button>
-              </div>
+              <RewardScreen nodeType={nodeType} onContinue={handleVictoryContinue} />
             )}
             {battleResult === 'defeat' && (
               <div className="defeat-options">
                 <button
                   className="battle-result-button"
                   onClick={() => {
+                    dispatch(statsActions.recordBattleLost());
+                    dispatch(statsActions.recordRunFailure());
+
                     dispatch(mapActions.clearMap());
                     dispatch(battleCreaturesState.clearBattleCreatures());
                     dispatch(playerState.resetAllPiles());

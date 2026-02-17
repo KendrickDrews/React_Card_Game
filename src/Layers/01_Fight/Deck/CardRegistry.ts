@@ -1,5 +1,6 @@
 import { PlayingCard, CardEffects } from '../../../types/card';
 import { PlayerCreature } from '../../../types/creature';
+import { getSlotEffectTotal } from '../resolveSlotEffects';
 
 interface CardTemplate {
   id: string;
@@ -404,11 +405,180 @@ const cardTemplates: Record<string, CardTemplate> = {
     description: 'Retreat into shell. Gain 4 block.',
     effect: { addBlock: 4 },
   },
+
+  // ── Phoenix cards ──
+
+  'phoenix-immolate': {
+    id: 'phoenix-immolate',
+    title: 'Immolate',
+    type: 'Spell',
+    manaCost: 2,
+    value: 3,
+    description: 'Erupt in flame. Deal 3 damage to all enemies.',
+    effect: { aoeDamage: 3, aoeShape: '1' },
+  },
+  'phoenix-rebirth': {
+    id: 'phoenix-rebirth',
+    title: 'Rebirth',
+    type: 'Spell',
+    manaCost: 3,
+    value: 5,
+    description: 'Channel life force. Heal an ally for 5 HP.',
+    effect: { heal: 5 },
+  },
+  'phoenix-ember': {
+    id: 'phoenix-ember',
+    title: 'Ember',
+    type: 'Attack',
+    manaCost: 1,
+    value: 4,
+    description: 'Hurl a burning ember. Deal 4 damage.',
+    effect: { damage: 4 },
+  },
+  'phoenix-ash-veil': {
+    id: 'phoenix-ash-veil',
+    title: 'Ash Veil',
+    type: 'Skill',
+    manaCost: 1,
+    value: 5,
+    description: 'Surround yourself in ash. Gain 5 block.',
+    effect: { addBlock: 5 },
+  },
+
+  // ── Scorpion cards ──
+
+  'scorpion-sting': {
+    id: 'scorpion-sting',
+    title: 'Venom Sting',
+    type: 'Attack',
+    manaCost: 2,
+    value: 6,
+    description: 'A powerful sting. Deal 6 damage.',
+    effect: { damage: 6 },
+  },
+  'scorpion-pincer': {
+    id: 'scorpion-pincer',
+    title: 'Pincer Crush',
+    type: 'Attack',
+    manaCost: 1,
+    value: 3,
+    description: 'Crush with pincers. Deal 3 damage.',
+    effect: { damage: 3 },
+  },
+  'scorpion-carapace': {
+    id: 'scorpion-carapace',
+    title: 'Carapace',
+    type: 'Skill',
+    manaCost: 1,
+    value: 6,
+    description: 'Harden your exoskeleton. Gain 6 block.',
+    effect: { addBlock: 6 },
+  },
+  'scorpion-burrow': {
+    id: 'scorpion-burrow',
+    title: 'Burrow',
+    type: 'Skill',
+    manaCost: 2,
+    value: 10,
+    description: 'Dig underground for cover. Gain 10 block.',
+    effect: { addBlock: 10 },
+  },
+
+  // ── Centipede cards ──
+
+  'centipede-flurry': {
+    id: 'centipede-flurry',
+    title: 'Leg Flurry',
+    type: 'Attack',
+    manaCost: 1,
+    value: 2,
+    description: 'A rapid barrage of legs. Deal 2 damage.',
+    effect: { damage: 2 },
+  },
+  'centipede-bite': {
+    id: 'centipede-bite',
+    title: 'Venomous Bite',
+    type: 'Attack',
+    manaCost: 2,
+    value: 5,
+    description: 'Sink fangs into the target. Deal 5 damage.',
+    effect: { damage: 5 },
+  },
+  'centipede-coil': {
+    id: 'centipede-coil',
+    title: 'Coil',
+    type: 'Skill',
+    manaCost: 1,
+    value: 4,
+    description: 'Coil up defensively. Gain 4 block.',
+    effect: { addBlock: 4 },
+  },
+
+  // ── Gold Weevil cards ──
+
+  'weevil-gilt-slam': {
+    id: 'weevil-gilt-slam',
+    title: 'Gilt Slam',
+    type: 'Attack',
+    manaCost: 2,
+    value: 5,
+    description: 'Slam with a golden shell. Deal 5 damage.',
+    effect: { damage: 5 },
+  },
+  'weevil-gold-shell': {
+    id: 'weevil-gold-shell',
+    title: 'Gold Shell',
+    type: 'Skill',
+    manaCost: 1,
+    value: 7,
+    description: 'Coat yourself in solid gold. Gain 7 block.',
+    effect: { addBlock: 7 },
+  },
+  'weevil-mint': {
+    id: 'weevil-mint',
+    title: 'Mint',
+    type: 'Skill',
+    manaCost: 0,
+    value: 3,
+    description: 'Produce a small golden shard. Gain 3 block.',
+    effect: { addBlock: 3 },
+  },
+
+  // ── Wraith Moth cards ──
+
+  'wraith-drain': {
+    id: 'wraith-drain',
+    title: 'Soul Drain',
+    type: 'Spell',
+    manaCost: 2,
+    value: 4,
+    description: 'Drain life essence. Deal 4 damage and heal 2 HP.',
+    effect: { damage: 4, heal: 2 },
+  },
+  'wraith-haunt': {
+    id: 'wraith-haunt',
+    title: 'Haunt',
+    type: 'Spell',
+    manaCost: 1,
+    value: 3,
+    description: 'A chilling presence. Deal 3 damage.',
+    effect: { damage: 3 },
+  },
+  'wraith-shroud': {
+    id: 'wraith-shroud',
+    title: 'Spectral Shroud',
+    type: 'Skill',
+    manaCost: 1,
+    value: 4,
+    description: 'Wrap yourself in shadows. Gain 4 block.',
+    effect: { addBlock: 4 },
+  },
 };
 
 // Instantiate a full PlayingCard[] from a creature's card ID list
 export function getCardsForCreature(creature: PlayerCreature): PlayingCard[] {
   const instanceCounts: Record<string, number> = {};
+  const costReduction = getSlotEffectTotal(creature, 'card_cost_reduction');
   return creature.cards
     .map(cardId => {
       const template = cardTemplates[cardId];
@@ -423,6 +593,7 @@ export function getCardsForCreature(creature: PlayerCreature): PlayingCard[] {
         ...template,
         id: `${creature.id}-${template.id}-${count}`,
         creatureId: creature.id,
+        manaCost: Math.max(0, template.manaCost - costReduction),
         discard: false,
       } as PlayingCard;
     })

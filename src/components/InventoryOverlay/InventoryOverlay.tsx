@@ -2,9 +2,11 @@ import { useState, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectTeamState } from '../../redux/slices/Team/teamSelector';
 import { teamActions } from '../../redux/slices/Team/teamSlice';
-import { selectGold, selectArtifacts, selectNeutralCards } from '../../redux/slices/Inventory/inventorySelector';
+import { selectGold, selectArtifacts, selectNeutralCards, selectSlotItems } from '../../redux/slices/Inventory/inventorySelector';
+import { inventoryActions } from '../../redux/slices/Inventory/inventorySlice';
 import { cardTemplates } from '../../Layers/01_Fight/Deck/CardRegistry';
 import { PlayerCreature } from '../../types/creature';
+import { SlotItem } from '../../types/slotItem';
 import './InventoryOverlay.scss';
 
 type Tab = 'party' | 'deck' | 'items';
@@ -77,7 +79,15 @@ const PartyTab = ({ isInFight }: { isInFight: boolean }) => {
 
   const [swapSource, setSwapSource] = useState<{ col: number; row: number } | null>(null);
   const [selectedBench, setSelectedBench] = useState<string | null>(null);
-  const [hoveredCreature, setHoveredCreature] = useState<PlayerCreature | null>(null);
+  const [hoveredCreatureId, setHoveredCreatureId] = useState<string | null>(null);
+  const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
+
+  // Derive creatures from live Redux state so equip/unequip updates immediately
+  const detailCreature = useMemo(() => {
+    const id = selectedCreatureId ?? hoveredCreatureId;
+    if (!id) return null;
+    return roster.find(c => c.id === id) ?? null;
+  }, [selectedCreatureId, hoveredCreatureId, roster]);
 
   const handleSlotClick = (col: number, row: number) => {
     if (isInFight) return;
@@ -120,11 +130,13 @@ const PartyTab = ({ isInFight }: { isInFight: boolean }) => {
     if (occupant) {
       setSwapSource({ col, row });
       setSelectedBench(null);
+      setSelectedCreatureId(occupant.id);
     }
   };
 
   const handleBenchClick = (creatureId: string) => {
     if (isInFight) return;
+    setSelectedCreatureId(creatureId);
     setSelectedBench(prev => prev === creatureId ? null : creatureId);
     setSwapSource(null);
   };
@@ -145,8 +157,8 @@ const PartyTab = ({ isInFight }: { isInFight: boolean }) => {
                   key={key}
                   className={`formation-slot ${creature ? 'occupied' : ''} ${isSwapSource ? 'swap-active' : ''}`}
                   onClick={() => handleSlotClick(col, row)}
-                  onMouseEnter={() => creature && setHoveredCreature(creature)}
-                  onMouseLeave={() => setHoveredCreature(null)}
+                  onMouseEnter={() => creature && setHoveredCreatureId(creature.id)}
+                  onMouseLeave={() => setHoveredCreatureId(null)}
                 >
                   {creature && (
                     <>
@@ -173,8 +185,8 @@ const PartyTab = ({ isInFight }: { isInFight: boolean }) => {
                 key={c.id}
                 className={`bench-creature ${selectedBench === c.id ? 'selected' : ''}`}
                 onClick={() => handleBenchClick(c.id)}
-                onMouseEnter={() => setHoveredCreature(c)}
-                onMouseLeave={() => setHoveredCreature(null)}
+                onMouseEnter={() => setHoveredCreatureId(c.id)}
+                onMouseLeave={() => setHoveredCreatureId(null)}
               >
                 <div className="bench-sprite">{c.name[0]}</div>
                 <div className="bench-info">
@@ -189,21 +201,46 @@ const PartyTab = ({ isInFight }: { isInFight: boolean }) => {
 
       <div className="party-detail">
         <h4>Details</h4>
-        {hoveredCreature ? (
-          <CreatureDetails creature={hoveredCreature} />
+        {detailCreature ? (
+          <CreatureDetails creature={detailCreature} isInFight={isInFight} />
         ) : (
-          <div className="detail-empty">Hover over a creature to see details</div>
+          <div className="detail-empty">Hover or click a creature to see details</div>
         )}
       </div>
     </div>
   );
 };
 
-const CreatureDetails = ({ creature }: { creature: PlayerCreature }) => {
+const RARITY_COLORS: Record<string, string> = {
+  common: '#888',
+  uncommon: '#4caf50',
+  rare: '#f0c040',
+};
+
+const CreatureDetails = ({ creature, isInFight }: { creature: PlayerCreature; isInFight: boolean }) => {
+  const dispatch = useAppDispatch();
+  const slotItems = useAppSelector(selectSlotItems);
   const hpPercent = (creature.currentHp / creature.maxHp) * 100;
   const cards = creature.cards
     .map(id => cardTemplates[id])
     .filter(Boolean);
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const handleUnequip = (item: SlotItem) => {
+    if (isInFight) return;
+    dispatch(teamActions.unequipSlotItem({ creatureId: creature.id, instanceId: item.instanceId }));
+    dispatch(inventoryActions.addSlotItem(item));
+  };
+
+  const handleEquip = (item: SlotItem) => {
+    if (isInFight) return;
+    dispatch(inventoryActions.removeSlotItem(item.instanceId));
+    dispatch(teamActions.equipSlotItem({ creatureId: creature.id, item }));
+    setPickerOpen(false);
+  };
+
+  const slots = creature.equippedSlots ?? [];
 
   return (
     <div className="creature-detail-panel">
@@ -228,6 +265,73 @@ const CreatureDetails = ({ creature }: { creature: PlayerCreature }) => {
           ))}
         </div>
       </div>
+      <div className="detail-slots">
+        <h5>Slots ({slots.length}/3)</h5>
+        <div className="creature-slots">
+          {[0, 1, 2].map(i => {
+            const item = slots[i];
+            if (item) {
+              return (
+                <div
+                  key={item.instanceId}
+                  className="slot-box filled"
+                  style={{ borderColor: RARITY_COLORS[item.rarity] }}
+                >
+                  <div className="slot-item-name">{item.name}</div>
+                  <div className="slot-item-desc">{item.description}</div>
+                  {!isInFight && (
+                    <button className="slot-unequip-btn" onClick={() => handleUnequip(item)}>
+                      Unequip
+                    </button>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <div
+                key={`empty-${i}`}
+                className="slot-box empty"
+                onClick={() => !isInFight && slots.length < 3 && setPickerOpen(!pickerOpen)}
+              >
+                +
+              </div>
+            );
+          })}
+        </div>
+        {pickerOpen && !isInFight && (
+          <SlotItemPicker items={slotItems} onPick={handleEquip} onClose={() => setPickerOpen(false)} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SlotItemPicker = ({ items, onPick, onClose }: { items: SlotItem[]; onPick: (item: SlotItem) => void; onClose: () => void }) => {
+  if (items.length === 0) {
+    return (
+      <div className="slot-item-picker">
+        <div className="picker-empty">No items available</div>
+        <button className="picker-close" onClick={onClose}>Close</button>
+      </div>
+    );
+  }
+  return (
+    <div className="slot-item-picker">
+      {items.map(item => (
+        <div
+          key={item.instanceId}
+          className="slot-item-row"
+          style={{ borderLeftColor: RARITY_COLORS[item.rarity] }}
+          onClick={() => onPick(item)}
+        >
+          <div className="slot-item-row-name">{item.name}</div>
+          <div className="slot-item-row-desc">{item.description}</div>
+          <div className="slot-item-row-rarity" style={{ color: RARITY_COLORS[item.rarity] }}>
+            {item.rarity}
+          </div>
+        </div>
+      ))}
+      <button className="picker-close" onClick={onClose}>Close</button>
     </div>
   );
 };
@@ -305,6 +409,7 @@ const DeckTab = () => {
 const ItemsTab = () => {
   const gold = useAppSelector(selectGold);
   const artifacts = useAppSelector(selectArtifacts);
+  const slotItems = useAppSelector(selectSlotItems);
 
   return (
     <div className="items-layout">
@@ -322,6 +427,29 @@ const ItemsTab = () => {
             {artifacts.map(a => (
               <div key={a.id} className="artifact-item" title={a.description}>
                 {a.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="items-slot-items">
+        <h4>Slot Items</h4>
+        {slotItems.length === 0 ? (
+          <div className="artifacts-empty">No slot items in bag</div>
+        ) : (
+          <div className="slot-item-bag-list">
+            {slotItems.map(item => (
+              <div
+                key={item.instanceId}
+                className="slot-item-bag-entry"
+                style={{ borderLeftColor: RARITY_COLORS[item.rarity] }}
+              >
+                <div className="slot-bag-name">{item.name}</div>
+                <div className="slot-bag-desc">{item.description}</div>
+                <div className="slot-bag-rarity" style={{ color: RARITY_COLORS[item.rarity] }}>
+                  {item.rarity}
+                </div>
               </div>
             ))}
           </div>
