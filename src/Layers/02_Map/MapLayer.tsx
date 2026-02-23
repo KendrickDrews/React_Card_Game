@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { selectCurrentMap, selectCurrentNodeId, selectCurrentNode, selectAvailableNodes, selectCompletedNodeIds } from '../../redux/slices/Map/mapSelector';
+import { selectCurrentMap, selectCurrentNodeId, selectCurrentNode, selectAvailableNodes, selectCompletedNodeIds, selectIsChoosingNextMap, selectCurrentMapNumber, selectTotalMaps } from '../../redux/slices/Map/mapSelector';
 import { mapActions } from '../../redux/slices/Map/mapSlice';
 import { battleState } from '../../redux/slices/Battle/battleSlice';
 import { playerState } from '../../redux/slices/Player/playerSlice';
@@ -13,6 +13,7 @@ import { AudioEngine } from '../../audio';
 import EventScreen from './EventScreen';
 import RestScreen from './RestScreen';
 import ShopScreen from './ShopScreen';
+import MapChoiceScreen from './MapChoiceScreen';
 
 interface LayerContext {
   layerContext: string;
@@ -27,6 +28,9 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
   const currentNode = useAppSelector(selectCurrentNode);
   const availableNodes = useAppSelector(selectAvailableNodes);
   const completedNodeIds = useAppSelector(selectCompletedNodeIds);
+  const isChoosingNextMap = useAppSelector(selectIsChoosingNextMap);
+  const currentMapNumber = useAppSelector(selectCurrentMapNumber);
+  const totalMaps = useAppSelector(selectTotalMaps);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const isVisible = layerContext === 'Map';
@@ -35,11 +39,11 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
 
   // Generate map if none exists when layer becomes visible
   useEffect(() => {
-    if (isVisible && !currentMap) {
+    if (isVisible && !currentMap && !isChoosingNextMap) {
       const map = generateMap();
       dispatch(mapActions.setMap(map));
     }
-  }, [isVisible, currentMap, dispatch]);
+  }, [isVisible, currentMap, isChoosingNextMap, dispatch]);
 
   // Auto-scroll to current node position (horizontal only, within the scroll container)
   useEffect(() => {
@@ -95,7 +99,7 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
           <div>Gold</div>
         </div>
         <div className="info-floor">
-          {currentNodeId ? `Node: ${currentNodeId}` : 'Map'}
+          Map {currentMapNumber}/{totalMaps} {currentNodeId ? `- ${currentNodeId}` : ''}
         </div>
         <div className="info-system">
           {isNodeInProgress && (
@@ -134,6 +138,7 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
       {isNodeInProgress && currentNodeType === 'rest' && <RestScreen onComplete={handleScreenComplete} />}
       {isNodeInProgress && currentNodeType === 'shop' && <ShopScreen onComplete={handleScreenComplete} />}
       {isNodeInProgress && currentNodeType === 'event' && <EventScreen onComplete={handleScreenComplete} />}
+      {isChoosingNextMap && <MapChoiceScreen />}
     </div>
   );
 };

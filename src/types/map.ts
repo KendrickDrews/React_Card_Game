@@ -37,6 +37,12 @@ export interface MapConfig {
   eliteLevelThreshold: number;
 }
 
+export interface MapChoice {
+  id: string;
+  label: string;
+  description: string;
+}
+
 export const DEFAULT_MAP_CONFIG: MapConfig = {
   depth: 9,
   maxWidth: 4,

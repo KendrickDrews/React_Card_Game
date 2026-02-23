@@ -11,6 +11,7 @@ import { grasslandsEncounter, getEncounterForNode } from '../../data/encounters'
 import { MapNode } from '../../types/map';
 import { CardEffects, PlayingCard } from '../../types/card';
 import { getSlotEffectTotal } from './resolveSlotEffects';
+import { cardUpgrades, applyCardUpgrade } from '../../data/cardUpgrades';
 
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
@@ -79,28 +80,43 @@ export const handleBattlePhase = (): AppThunk => async (dispatch, getState) => {
         dispatch(battleCreaturesState.loadEnemyCreatures(enemies));
 
         // Compose deck from all active team creatures' cards + neutral cards
+        const { removedCards, upgradedCards } = getState().inventory;
         const allCards: PlayingCard[] = [];
         for (const creature of activeCreatures) {
-          allCards.push(...getCardsForCreature(creature));
+          const creatureCards = getCardsForCreature(creature);
+          for (const card of creatureCards) {
+            // Find the base template ID from the instance ID (format: creatureId-templateId-count)
+            const templateId = creature.cards.find(cid => card.id.includes(cid));
+            if (templateId && removedCards.includes(templateId)) continue;
+            if (templateId && upgradedCards.includes(templateId)) {
+              const upgrade = cardUpgrades[templateId];
+              if (upgrade) applyCardUpgrade(card, upgrade);
+            }
+            allCards.push(card);
+          }
         }
 
         const neutralCardIds = getState().inventory.neutralCards;
         const neutralCounts: Record<string, number> = {};
         for (const cardId of neutralCardIds) {
+          if (removedCards.includes(cardId)) continue;
           const template = cardTemplates[cardId];
           if (template) {
             const count = (neutralCounts[cardId] ?? 0) + 1;
             neutralCounts[cardId] = count;
+            const isUpgraded = upgradedCards.includes(cardId);
+            const upgrade = isUpgraded ? cardUpgrades[cardId] : undefined;
             allCards.push({
               id: `neutral-${cardId}-${count}`,
               creatureId: 'neutral',
-              title: template.title,
+              title: upgrade?.upgradedTitle ?? template.title,
               type: template.type,
-              manaCost: template.manaCost,
+              manaCost: upgrade?.upgradedManaCost ?? template.manaCost,
               value: template.value,
-              description: template.description,
-              effect: template.effect as CardEffects,
+              description: upgrade?.upgradedDescription ?? template.description,
+              effect: (upgrade?.upgradedEffect ?? template.effect) as CardEffects,
               discard: false,
+              upgraded: isUpgraded,
             });
           }
         }

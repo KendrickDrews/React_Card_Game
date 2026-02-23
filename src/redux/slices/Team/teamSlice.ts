@@ -72,6 +72,15 @@ export const teamSlice = createSlice({
         }
       }
     },
+    damageTeamByPercent: (state, action: PayloadAction<number>) => {
+      const percent = action.payload;
+      for (const creature of state.roster) {
+        if (creature.isAlive) {
+          const damageAmount = Math.floor(creature.maxHp * (percent / 100));
+          creature.currentHp = Math.max(1, creature.currentHp - damageAmount);
+        }
+      }
+    },
     fullyHealTeam: (state) => {
       for (const creature of state.roster) {
         creature.currentHp = creature.maxHp;

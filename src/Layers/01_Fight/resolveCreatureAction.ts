@@ -1,10 +1,10 @@
-import { RootState } from '../../redux/store';
+import { AppDispatch, RootState } from '../../redux/store';
 import { battleCreaturesState } from '../../redux/slices/BattleCreatures/battleCreaturesSlice';
-import { BattleCreature, CreatureAction, PlayerCreature, EnemyCreature } from '../../types/creature';
+import { BattleCreature, CreatureAction, PlayerCreature } from '../../types/creature';
 import { getSummonTemplate } from '../../data/summonRegistry';
 import { PLAYER_ZONE, ENEMY_ZONE } from './gridConstants';
-import { battleState } from '../../redux/slices/Battle/battleSlice';
-import { getSlotEffectTotal } from './resolveSlotEffects';
+import { getCreatureBonuses } from './resolveSlotEffects';
+import { createSummonedPlayerCreature, createSummonedEnemyCreature, dispatchSummon } from './summonFactory';
 
 function findEmptyCell(
   state: ReturnType<() => RootState>['battleCreatures'],
@@ -23,7 +23,7 @@ function findEmptyCell(
 }
 
 export function resolveCreatureAction(
-  dispatch: (action: any) => void,
+  dispatch: AppDispatch,
   getState: () => RootState,
   actingCreature: BattleCreature,
   action: CreatureAction
@@ -81,28 +81,26 @@ export function resolveCreatureAction(
   }
 
   // Compute slot item bonuses for player creatures
-  const dmgBonus = isPlayerSide ? getSlotEffectTotal(actingCreature as PlayerCreature, 'flat_damage_bonus') : 0;
-  const healBonus = isPlayerSide ? getSlotEffectTotal(actingCreature as PlayerCreature, 'flat_heal_bonus') : 0;
-  const blockBonus = isPlayerSide ? getSlotEffectTotal(actingCreature as PlayerCreature, 'flat_block_bonus') : 0;
+  const bonuses = isPlayerSide ? getCreatureBonuses(actingCreature as PlayerCreature) : { dmg: 0, heal: 0, block: 0 };
 
   // Apply effects to each target
   for (const target of targets) {
     if (action.effect.damage) {
       dispatch(battleCreaturesState.damageCreature({
         creatureId: target.id,
-        amount: action.effect.damage + dmgBonus,
+        amount: action.effect.damage + bonuses.dmg,
       }));
     }
     if (action.effect.heal) {
       dispatch(battleCreaturesState.healCreature({
         creatureId: target.id,
-        amount: action.effect.heal + healBonus,
+        amount: action.effect.heal + bonuses.heal,
       }));
     }
     if (action.effect.addBlock) {
       dispatch(battleCreaturesState.addBlock({
         creatureId: target.id,
-        amount: action.effect.addBlock + blockBonus,
+        amount: action.effect.addBlock + bonuses.block,
       }));
     }
   }
@@ -115,69 +113,10 @@ export function resolveCreatureAction(
       const zone = isPlayerSide ? PLAYER_ZONE : ENEMY_ZONE;
       const cell = findEmptyCell(bcState, zone);
       if (cell) {
-        const id = `summon-${template.id}-${Date.now()}`;
         if (isPlayerSide) {
-          const summoned: PlayerCreature = {
-            id,
-            speciesId: template.id,
-            name: template.name,
-            side: 'player',
-            maxHp: template.maxHp,
-            currentHp: template.maxHp,
-            block: 0,
-            initiative: template.initiative,
-            passive: null,
-            buffs: [],
-            debuffs: [],
-            isAlive: true,
-            isSummoned: true,
-            spriteId: template.spriteId,
-            gridPosition: cell,
-            cards: [],
-            defaultAction: { ...template.action },
-            currentAction: { ...template.action },
-            level: 1,
-            experience: 0,
-            experienceToNextLevel: 0,
-            formationPosition: { col: 0, row: 0 },
-            equippedSlots: [],
-          };
-          dispatch(battleCreaturesState.addPlayerCreature(summoned));
-          dispatch(battleState.addToInitiativeQueue({
-            creatureId: id,
-            side: 'player',
-            initiative: template.initiative,
-            hasActed: false,
-          }));
+          dispatchSummon(dispatch, createSummonedPlayerCreature(template, cell));
         } else {
-          const summoned: EnemyCreature = {
-            id,
-            speciesId: template.id,
-            name: template.name,
-            side: 'enemy',
-            maxHp: template.maxHp,
-            currentHp: template.maxHp,
-            block: 0,
-            initiative: template.initiative,
-            passive: null,
-            buffs: [],
-            debuffs: [],
-            isAlive: true,
-            isSummoned: true,
-            spriteId: template.spriteId,
-            gridPosition: cell,
-            pattern: [
-              { action: { ...template.action }, intentIcon: 'attack' },
-            ],
-            patternIndex: 0,
-          };
-          dispatch(battleCreaturesState.addEnemyCreature(summoned));
-          dispatch(battleState.addToInitiativeQueue({
-            creatureId: id,
-            side: 'enemy',
-            initiative: template.initiative,
-            hasActed: false,
-          }));
+          dispatchSummon(dispatch, createSummonedEnemyCreature(template, cell));
         }
       }
     }

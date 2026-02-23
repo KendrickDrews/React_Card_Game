@@ -7,6 +7,10 @@ export interface InventoryState {
   artifacts: Artifact[];
   neutralCards: string[];
   slotItems: SlotItem[];
+  removedCards: string[];
+  upgradedCards: string[];
+  cardRemoveCount: number;
+  cardUpgradeCount: number;
 }
 
 const initInventoryState: InventoryState = {
@@ -14,6 +18,10 @@ const initInventoryState: InventoryState = {
   artifacts: [],
   neutralCards: [],
   slotItems: [],
+  removedCards: [],
+  upgradedCards: [],
+  cardRemoveCount: 0,
+  cardUpgradeCount: 0,
 };
 
 export const inventorySlice = createSlice({
@@ -44,6 +52,20 @@ export const inventorySlice = createSlice({
     },
     removeSlotItem: (state, action: PayloadAction<string>) => {
       state.slotItems = state.slotItems.filter(i => i.instanceId !== action.payload);
+    },
+    removeCard: (state, action: PayloadAction<string>) => {
+      state.removedCards.push(action.payload);
+    },
+    upgradeCard: (state, action: PayloadAction<string>) => {
+      if (!state.upgradedCards.includes(action.payload)) {
+        state.upgradedCards.push(action.payload);
+      }
+    },
+    incrementRemoveCount: (state) => {
+      state.cardRemoveCount += 1;
+    },
+    incrementUpgradeCount: (state) => {
+      state.cardUpgradeCount += 1;
     },
     resetInventory: () => initInventoryState,
   },

@@ -51,3 +51,28 @@ export const selectIsMapComplete = createSelector(
     return bossLevel.nodes.some(n => n.visited);
   }
 );
+
+export const selectCurrentMapNumber = createSelector(
+  selectMapState,
+  (map) => map.currentMapNumber
+);
+
+export const selectTotalMaps = createSelector(
+  selectMapState,
+  (map) => map.totalMaps
+);
+
+export const selectIsChoosingNextMap = createSelector(
+  selectMapState,
+  (map) => map.isChoosingNextMap
+);
+
+export const selectMapChoices = createSelector(
+  selectMapState,
+  (map) => map.mapChoices
+);
+
+export const selectIsLastMap = createSelector(
+  selectMapState,
+  (map) => map.currentMapNumber >= map.totalMaps
+);

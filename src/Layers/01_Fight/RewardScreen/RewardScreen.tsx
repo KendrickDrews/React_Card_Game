@@ -9,6 +9,7 @@ import './RewardScreen.scss';
 interface RewardScreenProps {
   nodeType: 'fight' | 'elite' | 'boss';
   onContinue: () => void;
+  continueLabel?: string;
 }
 
 const RARITY_COLORS: Record<string, string> = {
@@ -17,7 +18,7 @@ const RARITY_COLORS: Record<string, string> = {
   rare: '#f0c040',
 };
 
-const RewardScreen = ({ nodeType, onContinue }: RewardScreenProps) => {
+const RewardScreen = ({ nodeType, onContinue, continueLabel }: RewardScreenProps) => {
   const dispatch = useAppDispatch();
 
   const rewards: BattleRewards = useMemo(() => {
@@ -173,7 +174,7 @@ const RewardScreen = ({ nodeType, onContinue }: RewardScreenProps) => {
       </div>
 
       <button className="battle-result-button" onClick={onContinue}>
-        Continue to Map
+        {continueLabel ?? 'Continue to Map'}
       </button>
     </div>
   );

@@ -28,7 +28,7 @@ export interface BattleState {
   isInitiativeResolving: boolean;
 
   // Battle result
-  battleResult: 'ongoing' | 'victory' | 'defeat';
+  battleResult: 'ongoing' | 'victory' | 'defeat' | 'run_complete';
 
   // Card targeting
   targetCreatureId: string | null;
@@ -122,7 +122,7 @@ export const battleSlice = createSlice({
     },
 
     // Battle result
-    setBattleResult: (state, action: PayloadAction<'ongoing' | 'victory' | 'defeat'>) => {
+    setBattleResult: (state, action: PayloadAction<'ongoing' | 'victory' | 'defeat' | 'run_complete'>) => {
       state.battleResult = action.payload;
     },
 

@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "././../../redux/hooks";
 import { battleState, playerState, selectBattleState, selectPlayerState } from "../../redux";
 import { selectPlayerCreatures, selectEnemyCreatures } from "../../redux/slices/BattleCreatures/battleCreaturesSelector";
 import { selectBattleResult, selectTargetingMode, selectValidTargetIds } from "../../redux/slices/Battle/battleSelector";
-import { selectCurrentNode } from "../../redux/slices/Map/mapSelector";
+import { selectCurrentNode, selectIsLastMap, selectCurrentMapNumber } from "../../redux/slices/Map/mapSelector";
 import { handleBattlePhase } from "./HandleBattlePhase"
 import { resolveCardEffect } from "./resolveCardEffect";
 import { store } from "../../redux/store";
@@ -17,11 +17,11 @@ import { BattleCreature, EnemyCreature } from "../../types/creature";
 import { mapActions } from "../../redux/slices/Map/mapSlice";
 import { teamActions } from "../../redux/slices/Team/teamSlice";
 import { battleCreaturesState } from "../../redux/slices/BattleCreatures/battleCreaturesSlice";
-import { menuState } from "../../redux/slices/Menu/menuSlice";
-import { inventoryActions } from "../../redux/slices/Inventory/inventorySlice";
 import { AudioEngine } from "../../audio";
+import { resetGameForNewRun } from "../../redux/thunks";
 import { statsActions } from "../../redux/slices/Stats/statsSlice";
 import { unlockableCreatures } from "../../data/unlockableCreatures";
+import { generateMapChoices } from "../../data/mapChoices";
 import RewardScreen from "./RewardScreen/RewardScreen";
 
 interface LayerContext {
@@ -41,12 +41,20 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
   const validTargetIds = useAppSelector(selectValidTargetIds);
 
   const currentNode = useAppSelector(selectCurrentNode);
+  const isLastMap = useAppSelector(selectIsLastMap);
+  const currentMapNumber = useAppSelector(selectCurrentMapNumber);
 
   const nodeType = useMemo<'fight' | 'elite' | 'boss'>(() => {
     if (currentNode?.type === 'elite') return 'elite';
     if (currentNode?.type === 'boss') return 'boss';
     return 'fight';
   }, [currentNode]);
+
+  const continueLabel = useMemo(() => {
+    if (currentNode?.type === 'boss' && !isLastMap) return 'Choose Next Map';
+    if (currentNode?.type === 'boss' && isLastMap) return 'Complete Run';
+    return 'Continue to Map';
+  }, [currentNode, isLastMap]);
 
   const handleVictoryContinue = useCallback(() => {
     // Record battle stats
@@ -82,9 +90,23 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
     dispatch(battleCreaturesState.clearBattleCreatures());
     dispatch(playerState.resetAllPiles());
     dispatch(battleState.clearTargeting());
-    dispatch(battleState.setBattleResult('ongoing'));
-    setLayerContext('Map');
-  }, [dispatch, enemyCreatures, playerCreatures, currentNode, setLayerContext]);
+
+    if (currentNode?.type === 'boss' && !isLastMap) {
+      // Boss beaten, more maps to go — show map choice
+      const choices = generateMapChoices(currentMapNumber + 1);
+      dispatch(mapActions.enterMapChoice(choices));
+      dispatch(battleState.setBattleResult('ongoing'));
+      setLayerContext('Map');
+    } else if (currentNode?.type === 'boss' && isLastMap) {
+      // Final boss beaten — run complete
+      dispatch(statsActions.recordRunSuccess());
+      dispatch(battleState.setBattleResult('run_complete'));
+    } else {
+      // Normal fight / elite — back to map
+      dispatch(battleState.setBattleResult('ongoing'));
+      setLayerContext('Map');
+    }
+  }, [dispatch, enemyCreatures, playerCreatures, currentNode, isLastMap, currentMapNumber, setLayerContext]);
 
   const battleStationsRef = useRef<HTMLDivElement>(null);
 
@@ -130,6 +152,14 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
       dispatch(playerState.decrease({ state: 'mana', amount: activeCard.manaCost }));
       dispatch(battleState.clearTargeting());
       dispatch(battleState.useCard(false));
+
+      // Check if all enemies are dead after card effect
+      const stateAfterCard = store.getState().battleCreatures;
+      const allEnemiesDead = stateAfterCard.enemyCreatures.every(c => !c.isAlive);
+      if (allEnemiesDead) {
+        dispatch(battleState.setBattleResult('victory'));
+        return;
+      }
     }
   }, [activeCard, dispatch, useCard, targetCreatureId]);
 
@@ -433,11 +463,13 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
       {battleResult !== 'ongoing' && (
         <div className="battle-result-overlay">
           <div className="battle-result-content">
-            <div className="battle-result-text">
-              {battleResult === 'victory' ? 'Victory!' : 'Defeat'}
-            </div>
+            {battleResult !== 'run_complete' && (
+              <div className="battle-result-text">
+                {battleResult === 'victory' ? 'Victory!' : 'Defeat'}
+              </div>
+            )}
             {battleResult === 'victory' && (
-              <RewardScreen nodeType={nodeType} onContinue={handleVictoryContinue} />
+              <RewardScreen nodeType={nodeType} onContinue={handleVictoryContinue} continueLabel={continueLabel} />
             )}
             {battleResult === 'defeat' && (
               <div className="defeat-options">
@@ -446,19 +478,28 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
                   onClick={() => {
                     dispatch(statsActions.recordBattleLost());
                     dispatch(statsActions.recordRunFailure());
-
-                    dispatch(mapActions.clearMap());
-                    dispatch(battleCreaturesState.clearBattleCreatures());
-                    dispatch(playerState.resetAllPiles());
-                    dispatch(battleState.clearTargeting());
-                    dispatch(battleState.setBattleResult('ongoing'));
-                    dispatch(teamActions.resetRoster());
-                    dispatch(inventoryActions.resetInventory());
-                    dispatch(menuState.resetMenu());
+                    dispatch(resetGameForNewRun());
                     setLayerContext('Menu');
                   }}
                 >
                   New Run
+                </button>
+              </div>
+            )}
+            {battleResult === 'run_complete' && (
+              <div className="run-complete-content">
+                <div className="battle-result-text">Run Complete!</div>
+                <p style={{ color: '#a0a0b0', marginBottom: 20 }}>
+                  Congratulations! You conquered all three maps.
+                </p>
+                <button
+                  className="battle-result-button"
+                  onClick={() => {
+                    dispatch(resetGameForNewRun());
+                    setLayerContext('Menu');
+                  }}
+                >
+                  Return to Menu
                 </button>
               </div>
             )}

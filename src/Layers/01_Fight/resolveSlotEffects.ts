@@ -16,3 +16,12 @@ export function getSlotEffectTotal(creature: PlayerCreature, effectType: SlotEff
 export function hasSlotEffect(creature: PlayerCreature, effectType: SlotEffectType): boolean {
   return getSlotEffectTotal(creature, effectType) > 0;
 }
+
+/** Returns the three most common combat bonuses for a creature in one call. */
+export function getCreatureBonuses(creature: PlayerCreature) {
+  return {
+    dmg: getSlotEffectTotal(creature, 'flat_damage_bonus'),
+    heal: getSlotEffectTotal(creature, 'flat_heal_bonus'),
+    block: getSlotEffectTotal(creature, 'flat_block_bonus'),
+  };
+}

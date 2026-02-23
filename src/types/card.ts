@@ -1,4 +1,5 @@
 import { CreatureAction } from './creature';
+import { PushDirection } from './battleHelpers';
 
 export interface ModifyActionEffect {
   creatureId: string;
@@ -16,13 +17,18 @@ export interface PlayingCard {
   effect: CardEffects;
   modifyAction?: ModifyActionEffect;
   discard: boolean;
-  targetMode?: 'creature' | 'cell';
+  upgraded?: boolean;
 }
 
-export type EffectKey = 'damage' | 'heal' | 'haste' | 'defender' | 'addMana' | 'addBlock' | 'anyColor' | string;
-
-export type EffectValue = number | boolean | string;
-
 export interface CardEffects {
-  [key: EffectKey]: EffectValue;
+  damage?: number;
+  heal?: number;
+  addMana?: number;
+  addBlock?: number;
+  aoeDamage?: number;
+  aoeShape?: string;
+  lineDamage?: number;
+  pushDistance?: number;
+  pushDirection?: PushDirection;
+  summon?: string;
 }

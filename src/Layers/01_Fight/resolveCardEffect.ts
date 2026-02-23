@@ -1,13 +1,11 @@
 import { AppDispatch, RootState } from '../../redux/store';
 import { PlayingCard } from '../../types/card';
-import { PlayerCreature } from '../../types/creature';
 import { battleCreaturesState } from '../../redux/slices/BattleCreatures/battleCreaturesSlice';
 import { playerState } from '../../redux/slices/Player/playerSlice';
 import { scanRowForTarget, getCreaturesInAoe, executePush, parseAoeShape } from './battleHelpers';
-import { PushDirection } from '../../types/battleHelpers';
 import { getSummonTemplate } from '../../data/summonRegistry';
-import { battleState } from '../../redux/slices/Battle/battleSlice';
-import { getSlotEffectTotal } from './resolveSlotEffects';
+import { getCreatureBonuses } from './resolveSlotEffects';
+import { createSummonedPlayerCreature, dispatchSummon } from './summonFactory';
 
 export function resolveCardEffect(
   dispatch: AppDispatch,
@@ -25,9 +23,10 @@ export function resolveCardEffect(
   if (card.creatureId !== 'neutral') {
     const ownerCreature = state.battleCreatures.playerCreatures.find(c => c.id === card.creatureId);
     if (ownerCreature) {
-      dmgBonus = getSlotEffectTotal(ownerCreature, 'flat_damage_bonus');
-      healBonus = getSlotEffectTotal(ownerCreature, 'flat_heal_bonus');
-      blockBonus = getSlotEffectTotal(ownerCreature, 'flat_block_bonus');
+      const bonuses = getCreatureBonuses(ownerCreature);
+      dmgBonus = bonuses.dmg;
+      healBonus = bonuses.heal;
+      blockBonus = bonuses.block;
     }
   }
 
@@ -40,7 +39,7 @@ export function resolveCardEffect(
     if (target) {
       dispatch(battleCreaturesState.damageCreature({
         creatureId: target,
-        amount: (effects.damage as number) + dmgBonus,
+        amount: effects.damage + dmgBonus,
       }));
     }
   }
@@ -54,14 +53,14 @@ export function resolveCardEffect(
     if (healTarget) {
       dispatch(battleCreaturesState.healCreature({
         creatureId: healTarget,
-        amount: (effects.heal as number) + healBonus,
+        amount: effects.heal + healBonus,
       }));
     }
   }
 
   // ── addMana ──
   if (effects.addMana !== undefined) {
-    dispatch(playerState.increase({ state: 'mana', amount: effects.addMana as number }));
+    dispatch(playerState.increase({ state: 'mana', amount: effects.addMana }));
   }
 
   // ── addBlock ──
@@ -72,14 +71,14 @@ export function resolveCardEffect(
     if (blockTarget) {
       dispatch(battleCreaturesState.addBlock({
         creatureId: blockTarget,
-        amount: (effects.addBlock as number) + blockBonus,
+        amount: effects.addBlock + blockBonus,
       }));
     }
   }
 
   // ── aoeDamage (paired with aoeShape) ──
   if (effects.aoeDamage !== undefined && effects.aoeShape !== undefined) {
-    const shape = parseAoeShape(effects.aoeShape as string);
+    const shape = parseAoeShape(effects.aoeShape);
     // Use targeted cell position, fall back to creature position for backwards compat
     const allCreatures = [...state.battleCreatures.playerCreatures, ...state.battleCreatures.enemyCreatures];
     const targetPos = state.battle.targetPosition
@@ -95,7 +94,7 @@ export function resolveCardEffect(
         if (creature.isAlive) {
           dispatch(battleCreaturesState.damageCreature({
             creatureId: creature.id,
-            amount: (effects.aoeDamage as number) + dmgBonus,
+            amount: effects.aoeDamage + dmgBonus,
           }));
         }
       }
@@ -113,7 +112,7 @@ export function resolveCardEffect(
       if (enemy) {
         dispatch(battleCreaturesState.damageCreature({
           creatureId: enemy.id,
-          amount: (effects.lineDamage as number) + dmgBonus,
+          amount: effects.lineDamage + dmgBonus,
         }));
       }
     } else {
@@ -122,7 +121,7 @@ export function resolveCardEffect(
       if (hit && hit.creature.isAlive) {
         dispatch(battleCreaturesState.damageCreature({
           creatureId: hit.creature.id,
-          amount: (effects.lineDamage as number) + dmgBonus,
+          amount: effects.lineDamage + dmgBonus,
         }));
       }
     }
@@ -137,8 +136,8 @@ export function resolveCardEffect(
         dispatch,
         getState,
         pushTarget,
-        effects.pushDirection as PushDirection,
-        effects.pushDistance as number
+        effects.pushDirection,
+        effects.pushDistance
       );
     }
   }
@@ -162,38 +161,7 @@ export function resolveCardEffect(
         c => c.gridPosition && c.gridPosition.col === targetPos.col && c.gridPosition.row === targetPos.row
       );
       if (!occupied) {
-        const summoned: PlayerCreature = {
-          id: `summon-${template.id}-${Date.now()}`,
-          speciesId: template.id,
-          name: template.name,
-          side: 'player',
-          maxHp: template.maxHp,
-          currentHp: template.maxHp,
-          block: 0,
-          initiative: template.initiative,
-          passive: null,
-          buffs: [],
-          debuffs: [],
-          isAlive: true,
-          isSummoned: true,
-          spriteId: template.spriteId,
-          gridPosition: { col: targetPos.col, row: targetPos.row },
-          cards: [],
-          defaultAction: { ...template.action },
-          currentAction: { ...template.action },
-          level: 1,
-          experience: 0,
-          experienceToNextLevel: 0,
-          formationPosition: { col: 0, row: 0 },
-          equippedSlots: [],
-        };
-        dispatch(battleCreaturesState.addPlayerCreature(summoned));
-        dispatch(battleState.addToInitiativeQueue({
-          creatureId: summoned.id,
-          side: 'player',
-          initiative: summoned.initiative,
-          hasActed: false,
-        }));
+        dispatchSummon(dispatch, createSummonedPlayerCreature(template, targetPos));
       }
     }
   }

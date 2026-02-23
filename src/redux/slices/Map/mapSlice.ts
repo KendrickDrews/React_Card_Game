@@ -1,16 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RunMap, MapNode } from '../../../types/map';
+import { RunMap, MapNode, MapChoice } from '../../../types/map';
 
 export interface MapState {
   currentMap: RunMap | null;
   currentNodeId: string | null;
   completedNodeIds: string[];
+  currentMapNumber: number;
+  totalMaps: number;
+  isChoosingNextMap: boolean;
+  mapChoices: MapChoice[];
 }
 
 const initMapState: MapState = {
   currentMap: null,
   currentNodeId: null,
   completedNodeIds: [],
+  currentMapNumber: 1,
+  totalMaps: 3,
+  isChoosingNextMap: false,
+  mapChoices: [],
 };
 
 export const mapSlice = createSlice({
@@ -71,10 +79,31 @@ export const mapSlice = createSlice({
       }
     },
 
+    enterMapChoice: (state, action: PayloadAction<MapChoice[]>) => {
+      state.isChoosingNextMap = true;
+      state.mapChoices = action.payload;
+      state.currentMap = null;
+      state.currentNodeId = null;
+      state.completedNodeIds = [];
+    },
+
+    advanceToNextMap: (state, action: PayloadAction<RunMap>) => {
+      state.currentMapNumber += 1;
+      state.currentMap = action.payload;
+      state.currentNodeId = 'node-0-0';
+      state.completedNodeIds = ['node-0-0'];
+      state.isChoosingNextMap = false;
+      state.mapChoices = [];
+    },
+
     clearMap: (state) => {
       state.currentMap = null;
       state.currentNodeId = null;
       state.completedNodeIds = [];
+      state.currentMapNumber = 1;
+      state.totalMaps = 3;
+      state.isChoosingNextMap = false;
+      state.mapChoices = [];
     },
   },
 });
