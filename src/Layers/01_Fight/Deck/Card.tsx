@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react"
 import { getValidTargets } from "../getValidTargets"
 import { AudioEngine } from "../../../audio"
 import './CardAnimation.scss'
+import KeywordText from '../../../components/KeywordText'
 
   
 const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: number}) => {
@@ -164,7 +165,7 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
           </div>
         </div>
         <div>title: {card.title}</div>
-        <div>description: {card.description}</div>
+        <div>description: <KeywordText text={card.description ?? ''} /></div>
         <div>type: {card.type}</div>
       </div>
       

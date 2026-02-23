@@ -1,4 +1,5 @@
 import { cardUpgrades } from '../../data/cardUpgrades';
+import KeywordText from '../../components/KeywordText';
 
 export interface CardPickerItem {
   templateId: string;
@@ -32,10 +33,10 @@ const CardPickerModal = ({ title, cards, showUpgradePreview = false, onSelect, o
               <div className="card-picker-cost">{card.manaCost}</div>
               <div className="card-picker-info">
                 <div className="card-picker-card-name">{card.title}</div>
-                <div className="card-picker-card-desc">{card.description}</div>
+                <div className="card-picker-card-desc"><KeywordText text={card.description} /></div>
                 {upgrade && (
                   <div className="card-picker-upgrade-preview">
-                    {'->'} {upgrade.upgradedTitle}: {upgrade.upgradedDescription}
+                    {'->'} {upgrade.upgradedTitle}: <KeywordText text={upgrade.upgradedDescription} />
                   </div>
                 )}
               </div>

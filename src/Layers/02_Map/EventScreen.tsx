@@ -4,6 +4,7 @@ import { selectGold } from '../../redux/slices/Inventory/inventorySelector';
 import { getRandomEvent } from '../../data/eventRegistry';
 import { resolveAllEffects } from '../../data/resolveEventEffect';
 import { EventStep } from '../../types/event';
+import KeywordText from '../../components/KeywordText';
 
 interface EventScreenProps {
   onComplete: () => void;
@@ -67,7 +68,7 @@ const EventScreen = ({ onComplete }: EventScreenProps) => {
                   >
                     <span>{choice.label}</span>
                     {choice.description && (
-                      <span className="event-choice-desc">{choice.description}</span>
+                      <span className="event-choice-desc"><KeywordText text={choice.description} /></span>
                     )}
                     {choice.condition?.minGold && (
                       <span className="event-choice-cost">Requires {choice.condition.minGold}g</span>

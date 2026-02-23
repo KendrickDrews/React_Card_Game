@@ -10,6 +10,7 @@ import { generateShopInventory, ShopInventory } from '../../data/shopGenerator';
 import { cardTemplates } from '../01_Fight/Deck/CardRegistry';
 import { cardUpgrades } from '../../data/cardUpgrades';
 import CardPickerModal from './CardPickerModal';
+import KeywordText from '../../components/KeywordText';
 import { SlotItem, SlotItemRarity } from '../../types/slotItem';
 import { Artifact } from '../../types/inventory';
 
@@ -196,7 +197,7 @@ const ShopScreen = ({ onComplete }: ShopScreenProps) => {
                   style={{ borderColor: RARITY_COLORS[item.rarity] }}
                 >
                   <div className="shop-item-name">{item.name}</div>
-                  <div className="shop-item-desc">{item.description}</div>
+                  <div className="shop-item-desc"><KeywordText text={item.description} /></div>
                   <div className="shop-item-rarity" style={{ color: RARITY_COLORS[item.rarity] }}>
                     {item.rarity}
                   </div>
@@ -224,7 +225,7 @@ const ShopScreen = ({ onComplete }: ShopScreenProps) => {
                   style={{ borderColor: RARITY_COLORS[rarity] ?? '#888' }}
                 >
                   <div className="shop-item-name">{artifact.name}</div>
-                  <div className="shop-item-desc">{artifact.description}</div>
+                  <div className="shop-item-desc"><KeywordText text={artifact.description} /></div>
                   <div className="shop-item-rarity" style={{ color: RARITY_COLORS[rarity] ?? '#888' }}>
                     {rarity} artifact
                   </div>

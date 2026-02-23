@@ -1,0 +1,39 @@
+.keyword-group {
+  cursor: help;
+}
+
+.keyword-highlight {
+  color: #512b00;
+  text-decoration: underline;
+}
+
+.keyword-entry-divider {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(200, 160, 80, 0.25);
+}
+
+.keyword-tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 8px));
+  background: rgba(20, 15, 35, 0.97);
+  border: 1px solid rgba(200, 160, 80, 0.6);
+  border-radius: 6px;
+  padding: 8px 10px;
+  max-width: 220px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.keyword-tooltip-name {
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 4px;
+}
+
+.keyword-tooltip-desc {
+  color: #d0ccc0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}

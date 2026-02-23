@@ -34,15 +34,15 @@ const MapConnections = ({ levels, visible }: Props) => {
         const fromEl = document.getElementById(`map-${node.id}`);
         if (!fromEl) continue;
         const fromRect = fromEl.getBoundingClientRect();
-        const fromX = fromRect.right - containerRect.left + container.scrollLeft;
-        const fromY = fromRect.top + fromRect.height / 2 - containerRect.top + container.scrollTop;
+        const fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
+        const fromY = fromRect.top - containerRect.top;
 
         for (const connId of node.connections) {
           const toEl = document.getElementById(`map-${connId}`);
           if (!toEl) continue;
           const toRect = toEl.getBoundingClientRect();
-          const toX = toRect.left - containerRect.left + container.scrollLeft;
-          const toY = toRect.top + toRect.height / 2 - containerRect.top + container.scrollTop;
+          const toX = toRect.left + toRect.width / 2 - containerRect.left;
+          const toY = toRect.bottom - containerRect.top;
 
           const targetNode = levels.flatMap(l => l.nodes).find(n => n.id === connId);
           const isVisited = node.visited && (targetNode?.visited ?? false);

@@ -1,12 +1,13 @@
-import { MapNode } from '../../types/map';
+import { MapNode, MapNodeType } from '../../types/map';
 
 interface MapNodeProps {
   node: MapNode;
   isCurrent: boolean;
   onClick: () => void;
+  highlightState?: 'highlighted' | 'dimmed' | null;
 }
 
-const nodeTypeIcons: Record<string, string> = {
+export const nodeTypeIcons: Record<MapNodeType, string> = {
   start: 'S',
   fight: 'F',
   elite: 'E',
@@ -16,7 +17,7 @@ const nodeTypeIcons: Record<string, string> = {
   event: '?',
 };
 
-const nodeTypeColors: Record<string, string> = {
+export const nodeTypeColors: Record<MapNodeType, string> = {
   start: '#4a9',
   fight: '#c55',
   elite: '#c85',
@@ -26,7 +27,7 @@ const nodeTypeColors: Record<string, string> = {
   event: '#58c',
 };
 
-const MapNodeComponent = ({ node, isCurrent, onClick }: MapNodeProps) => {
+const MapNodeComponent = ({ node, isCurrent, onClick, highlightState }: MapNodeProps) => {
   const stateClass = node.visited ? 'visited'
                    : node.available ? 'available'
                    : 'locked';
@@ -34,7 +35,7 @@ const MapNodeComponent = ({ node, isCurrent, onClick }: MapNodeProps) => {
   return (
     <div
       id={`map-${node.id}`}
-      className={`map-node ${stateClass} ${isCurrent ? 'current' : ''} type-${node.type}`}
+      className={`map-node ${stateClass} ${isCurrent ? 'current' : ''} type-${node.type} ${highlightState ?? ''}`}
       onClick={onClick}
       style={{
         '--node-color': nodeTypeColors[node.type] ?? '#888',
@@ -43,7 +44,6 @@ const MapNodeComponent = ({ node, isCurrent, onClick }: MapNodeProps) => {
       <div className="map-node-icon">
         {nodeTypeIcons[node.type] ?? '?'}
       </div>
-      <div className="map-node-label">{node.type}</div>
     </div>
   );
 };

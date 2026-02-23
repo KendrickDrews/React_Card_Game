@@ -8,6 +8,7 @@ import { cardTemplates } from '../../Layers/01_Fight/Deck/CardRegistry';
 import { PlayerCreature } from '../../types/creature';
 import { SlotItem } from '../../types/slotItem';
 import './InventoryOverlay.scss';
+import KeywordText from '../KeywordText';
 
 type Tab = 'party' | 'deck' | 'items';
 
@@ -278,7 +279,7 @@ const CreatureDetails = ({ creature, isInFight }: { creature: PlayerCreature; is
                   style={{ borderColor: RARITY_COLORS[item.rarity] }}
                 >
                   <div className="slot-item-name">{item.name}</div>
-                  <div className="slot-item-desc">{item.description}</div>
+                  <div className="slot-item-desc"><KeywordText text={item.description} /></div>
                   {!isInFight && (
                     <button className="slot-unequip-btn" onClick={() => handleUnequip(item)}>
                       Unequip
@@ -325,7 +326,7 @@ const SlotItemPicker = ({ items, onPick, onClose }: { items: SlotItem[]; onPick:
           onClick={() => onPick(item)}
         >
           <div className="slot-item-row-name">{item.name}</div>
-          <div className="slot-item-row-desc">{item.description}</div>
+          <div className="slot-item-row-desc"><KeywordText text={item.description} /></div>
           <div className="slot-item-row-rarity" style={{ color: RARITY_COLORS[item.rarity] }}>
             {item.rarity}
           </div>
@@ -393,7 +394,7 @@ const DeckTab = () => {
             <div className="deck-card-cost">{entry.manaCost}</div>
             <div className="deck-card-info">
               <div className="deck-card-title">{entry.title}</div>
-              <div className="deck-card-desc">{entry.description}</div>
+              <div className="deck-card-desc"><KeywordText text={entry.description} /></div>
             </div>
             <div className="deck-card-type">{entry.type}</div>
             <div className="deck-card-owner">{entry.ownerName}</div>
@@ -446,7 +447,7 @@ const ItemsTab = () => {
                 style={{ borderLeftColor: RARITY_COLORS[item.rarity] }}
               >
                 <div className="slot-bag-name">{item.name}</div>
-                <div className="slot-bag-desc">{item.description}</div>
+                <div className="slot-bag-desc"><KeywordText text={item.description} /></div>
                 <div className="slot-bag-rarity" style={{ color: RARITY_COLORS[item.rarity] }}>
                   {item.rarity}
                 </div>

@@ -5,6 +5,7 @@ import { generateRewards, BattleRewards } from '../../../data/rewardGenerator';
 import { cardTemplates } from '../Deck/CardRegistry';
 import { SlotItem } from '../../../types/slotItem';
 import './RewardScreen.scss';
+import KeywordText from '../../../components/KeywordText';
 
 interface RewardScreenProps {
   nodeType: 'fight' | 'elite' | 'boss';
@@ -102,7 +103,7 @@ const RewardScreen = ({ nodeType, onContinue, continueLabel }: RewardScreenProps
                   >
                     <div className="reward-card-cost">{template.manaCost}</div>
                     <div className="reward-card-name">{template.title}</div>
-                    <div className="reward-card-desc">{template.description}</div>
+                    <div className="reward-card-desc"><KeywordText text={template.description} /></div>
                     {isPicked && <div className="reward-picked-badge">Added</div>}
                   </div>
                 );
@@ -128,7 +129,7 @@ const RewardScreen = ({ nodeType, onContinue, continueLabel }: RewardScreenProps
                 onClick={() => handleTakeEliteItem(rewards.slotItemDrop!)}
               >
                 <div className="reward-item-name">{rewards.slotItemDrop.name}</div>
-                <div className="reward-item-desc">{rewards.slotItemDrop.description}</div>
+                <div className="reward-item-desc"><KeywordText text={rewards.slotItemDrop.description} /></div>
                 <div className="reward-item-rarity" style={{ color: RARITY_COLORS[rewards.slotItemDrop.rarity] }}>
                   {rewards.slotItemDrop.rarity}
                 </div>
@@ -160,7 +161,7 @@ const RewardScreen = ({ nodeType, onContinue, continueLabel }: RewardScreenProps
                     onClick={() => handlePickBossItem(item)}
                   >
                     <div className="reward-item-name">{item.name}</div>
-                    <div className="reward-item-desc">{item.description}</div>
+                    <div className="reward-item-desc"><KeywordText text={item.description} /></div>
                     <div className="reward-item-rarity" style={{ color: RARITY_COLORS[item.rarity] }}>
                       {item.rarity}
                     </div>
