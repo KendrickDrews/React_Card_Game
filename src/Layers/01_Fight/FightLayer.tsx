@@ -30,6 +30,11 @@ interface LayerContext {
   onOpenInventory: () => void;
 }
 
+const PHASE_MESSAGES: Partial<Record<string, { text: string; variant: 'player' | 'initiative' }>> = {
+  player_card_phase: { text: 'Your Turn', variant: 'player' },
+  initiative_phase:  { text: 'Initiative Phase', variant: 'initiative' },
+};
+
 const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerContext) => {
   const dispatch = useAppDispatch();
   const { phase, useCard, activeCard, targetCreatureId } = useAppSelector(selectBattleState);
@@ -109,6 +114,17 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
   }, [dispatch, enemyCreatures, playerCreatures, currentNode, isLastMap, currentMapNumber, setLayerContext]);
 
   const battleStationsRef = useRef<HTMLDivElement>(null);
+
+  // Phase announcement banner
+  const bannerKeyRef = useRef(0);
+  const [banner, setBanner] = useState<{ text: string; variant: 'player' | 'initiative'; key: number } | null>(null);
+
+  useEffect(() => {
+    const msg = PHASE_MESSAGES[phase];
+    if (!msg) return;
+    bannerKeyRef.current += 1;
+    setBanner({ ...msg, key: bannerKeyRef.current });
+  }, [phase]);
 
   // Build position lookup: "col,row" -> creature
   const creaturesByPosition = useMemo(() => {
@@ -503,6 +519,22 @@ const FightLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerCon
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {banner && (
+        <div
+          key={banner.key}
+          className={`phase-banner phase-banner--${banner.variant}`}
+          onAnimationEnd={() => setBanner(null)}
+        >
+          <div className="phase-banner-frame">
+            <div className="phase-banner-body">
+              <span className="phase-banner-ornament">◆</span>
+              <span className="phase-banner-text">{banner.text}</span>
+              <span className="phase-banner-ornament">◆</span>
+            </div>
           </div>
         </div>
       )}
