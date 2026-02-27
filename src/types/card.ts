@@ -18,6 +18,7 @@ export interface PlayingCard {
   modifyAction?: ModifyActionEffect;
   discard: boolean;
   upgraded?: boolean;
+  isAnimatingOut?: boolean;
 }
 
 export interface CardEffects {

@@ -9,6 +9,8 @@ export interface MapNode {
   visited: boolean;
   available: boolean;
   encounterId?: string;
+  offsetX?: number;
+  offsetY?: number;
 }
 
 export interface MapLevel {

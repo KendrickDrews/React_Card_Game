@@ -98,6 +98,10 @@ export const playerSlice = createSlice({
     decrease: (state, action: PayloadAction<IncrementPlayerAction>) => {
       state[action.payload.state] -= action.payload.amount;
     },
+    markCardAnimatingOut: (state, action: PayloadAction<string>) => {
+      const card = state.hand.find(c => c.id === action.payload);
+      if (card) card.isAnimatingOut = true;
+    },
     resetAllPiles: (state) => {
       state.deck = [];
       state.draw = [];

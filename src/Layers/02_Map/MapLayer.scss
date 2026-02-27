@@ -17,7 +17,7 @@
   display: flex;
   position: relative;
   min-height: 100%;
-  padding: 100px 40px;
+  padding: 100px 0px;
   min-width: 100%;
   width: 100%;
   isolation: isolate;
@@ -30,7 +30,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 .map-line {
@@ -58,7 +58,7 @@
 .map-level-column {
   display: flex;
   flex-direction: row;
-  gap: 40px;
+  gap: 13vw;
   align-items: center;
   min-height: 80px;
 }
@@ -91,13 +91,12 @@
   }
 
   &.visited {
-    opacity: 0.5;
+    filter: brightness(0.5);
     border-color: rgba(100, 200, 100, 0.5);
   }
 
   &.locked {
-    opacity: 0.3;
-    filter: grayscale(0.5);
+    filter: brightness(0.35) grayscale(0.5);
   }
 
   &.highlighted {
@@ -202,6 +201,31 @@
 @keyframes node-pulse {
   0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
   50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+}
+
+// 2-frame spritesheet animation: sprite is 64×32px (frame 1 left, frame 2 right)
+// steps(2) with a total shift of -64px lands on 0px then -32px per cycle
+@keyframes token-sprite {
+  from { background-position: 0 0; }
+  to   { background-position: -64px 0; }
+}
+
+.map-player-token {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);  // anchor at element center
+  z-index: 5;                         // above nodes (z-index 2) and SVG (z-index 1)
+  pointer-events: none;
+
+  // Spritesheet — drop a 64×32 PNG at public/sprites/player-token.png
+  // Until sprite exists, the border-radius + background-color shows a visible circle
+  background-image: url('/sprites/player-token.png');
+  background-color: rgba(255, 255, 255, 0.85);  // fallback if no sprite
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  animation: token-sprite 0.6s steps(2) infinite;
+  transition: top 0.8s ease-in-out, left 0.8s ease-in-out;
 }
 
 .return-to-fight {

@@ -5,6 +5,7 @@ interface MapNodeProps {
   isCurrent: boolean;
   onClick: () => void;
   highlightState?: 'highlighted' | 'dimmed' | null;
+  disabled?: boolean;
 }
 
 export const nodeTypeIcons: Record<MapNodeType, string> = {
@@ -27,9 +28,9 @@ export const nodeTypeColors: Record<MapNodeType, string> = {
   event: '#58c',
 };
 
-const MapNodeComponent = ({ node, isCurrent, onClick, highlightState }: MapNodeProps) => {
+const MapNodeComponent = ({ node, isCurrent, onClick, highlightState, disabled }: MapNodeProps) => {
   const stateClass = node.visited ? 'visited'
-                   : node.available ? 'available'
+                   : (node.available && !disabled) ? 'available'
                    : 'locked';
 
   return (
@@ -39,6 +40,7 @@ const MapNodeComponent = ({ node, isCurrent, onClick, highlightState }: MapNodeP
       onClick={onClick}
       style={{
         '--node-color': nodeTypeColors[node.type] ?? '#888',
+        transform: `translate(${node.offsetX ?? 0}px, ${node.offsetY ?? 0}px)`,
       } as React.CSSProperties}
     >
       <div className="map-node-icon">

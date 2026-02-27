@@ -9,6 +9,7 @@ import { generateMap } from '../../data/mapGenerator';
 import { MapNodeType } from '../../types/map';
 import MapNodeComponent, { nodeTypeIcons, nodeTypeColors } from './MapNode';
 import MapConnections from './MapConnections';
+import MapPlayerToken from './MapPlayerToken';
 import { AudioEngine } from '../../audio';
 import EventScreen from './EventScreen';
 import RestScreen from './RestScreen';
@@ -57,9 +58,16 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
   const currentMapNumber = useAppSelector(selectCurrentMapNumber);
   const totalMaps = useAppSelector(selectTotalMaps);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const graphRef = useRef<HTMLDivElement>(null);
   const introPlayedForMap = useRef<number>(-1);
+  const delayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [introTitle, setIntroTitle] = useState<'visible' | 'fade-out' | 'hidden'>('hidden');
   const [hoveredLegendType, setHoveredLegendType] = useState<MapNodeType | null>(null);
+  const [modalDelayReady, setModalDelayReady] = useState(true);
+
+  useEffect(() => () => {
+    if (delayRef.current) clearTimeout(delayRef.current);
+  }, []);
 
   const isVisible = layerContext === 'Map';
   const isNodeInProgress = currentNodeId !== null && !completedNodeIds.includes(currentNodeId);
@@ -124,19 +132,23 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
     AudioEngine.getInstance().playSfx('ui-click');
     dispatch(mapActions.setCurrentNode(nodeId));
 
+    if (delayRef.current) clearTimeout(delayRef.current);
+
     if (nodeType === 'fight' || nodeType === 'elite' || nodeType === 'boss') {
-      // Reset battle state for a fresh fight
-      dispatch(playerState.resetAllPiles());
-      dispatch(battleCreaturesState.clearBattleCreatures());
-      dispatch(battleState.clearTargeting());
-      dispatch(battleState.setBattleResult('ongoing'));
-      dispatch(battleState.setShouldDraw(true));
-      dispatch(battleState.setBattleStart(true));
-      dispatch(battleState.setBattlePhase('turn_start'));
-      dispatch(battleState.resetTurn());
-      setLayerContext('Fight');
+      delayRef.current = setTimeout(() => {
+        dispatch(playerState.resetAllPiles());
+        dispatch(battleCreaturesState.clearBattleCreatures());
+        dispatch(battleState.clearTargeting());
+        dispatch(battleState.setBattleResult('ongoing'));
+        dispatch(battleState.setShouldDraw(true));
+        dispatch(battleState.setBattleStart(true));
+        dispatch(battleState.setBattlePhase('turn_start'));
+        dispatch(battleState.resetTurn());
+        setLayerContext('Fight');
+      }, 800);
     } else {
-      // Rest, Shop, Event: node stays "in progress" until the overlay screen completes it
+      setModalDelayReady(false);
+      delayRef.current = setTimeout(() => setModalDelayReady(true), 800);
     }
   };
 
@@ -173,8 +185,9 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
           </div>
         )}
         {currentMap && (
-          <div className="map-graph">
+          <div className="map-graph" ref={graphRef}>
             <MapConnections levels={currentMap.levels} visible={isVisible} />
+            <MapPlayerToken currentNodeId={currentNodeId} graphRef={graphRef} />
 
             <div className="map-levels">
               {[...currentMap.levels].reverse().map(level => (
@@ -184,6 +197,7 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
                       key={node.id}
                       node={node}
                       isCurrent={node.id === currentNodeId}
+                      disabled={isNodeInProgress && node.id !== currentNodeId}
                       onClick={() => handleNodeClick(node.id, node.type)}
                       highlightState={
                         hoveredLegendType === null ? null
@@ -220,9 +234,9 @@ const MapLayer = ({ layerContext, setLayerContext, onOpenInventory }: LayerConte
         </div>
       )}
 
-      {isNodeInProgress && currentNodeType === 'rest' && <RestScreen onComplete={handleScreenComplete} />}
-      {isNodeInProgress && currentNodeType === 'shop' && <ShopScreen onComplete={handleScreenComplete} />}
-      {isNodeInProgress && currentNodeType === 'event' && <EventScreen onComplete={handleScreenComplete} />}
+      {isNodeInProgress && modalDelayReady && currentNodeType === 'rest' && <RestScreen onComplete={handleScreenComplete} />}
+      {isNodeInProgress && modalDelayReady && currentNodeType === 'shop' && <ShopScreen onComplete={handleScreenComplete} />}
+      {isNodeInProgress && modalDelayReady && currentNodeType === 'event' && <EventScreen onComplete={handleScreenComplete} />}
       {isChoosingNextMap && <MapChoiceScreen />}
     </div>
   );

@@ -95,12 +95,10 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
   }
   // UseCard
   useEffect(() => {
-    if (useCard) {
-      if (activeCard?.id === card.id) {
-        handleClick('useCard')
-      }
+    if (useCard && activeCard?.id === card.id) {
+      dispatch(playerState.markCardAnimatingOut(card.id));
+      handleClick('useCard');
     }
-
   }, [useCard, activeCard, card])
 
   // Animate when Added to player Hand
@@ -120,10 +118,12 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
   
   // Adjust Position of Elements based on Number of cards in hand
   useEffect(() => {
-    const handSize = playerSelector.hand.length;
-    const centerIndex = (handSize - 1) / 2;
-    setLeft(index - centerIndex);
-  }, [playerSelector.hand, index]);
+    const visibleHand = playerSelector.hand.filter(c => !c.isAnimatingOut);
+    const myVisibleIndex = visibleHand.findIndex(c => c.id === card.id);
+    if (myVisibleIndex === -1) return; // this card is animating out — keep current position
+    const centerIndex = (visibleHand.length - 1) / 2;
+    setLeft(myVisibleIndex - centerIndex);
+  }, [playerSelector.hand, card.id]);
 
   
   useEffect(() => {
@@ -140,33 +140,40 @@ const Card = ({card, mana, index}:{card: PlayingCard, mana: number, index: numbe
     return () => window.removeEventListener('resize', updateWidth); // Cleanup
   }, []);
 
-
   // To make the hover better, give the card container a child container which moves up on hover
+    const computedWidth = window.innerWidth * (hovering || isSelected ? 0.12 : 0.10);
     return (
       <div
         ref={elementRef}
         data-card-id={card.id}
         style={{
           top: `calc(${top}% - ${isSelected ? 2 : 0}%)`,
-          left: `calc(50% - ${width/2}px - ${(left) * width/1.25}px)`,
+          left: `calc(50% - ${computedWidth/2}px - ${(left) * computedWidth/1.25}px)`,
           zIndex: `${(100 + (playerSelector.hand.length/2 - index) * 10) + (hovering ? 20 : 0) + (isSelected ? 10 : 0)}`
         }}
         onMouseEnter={() => handleMouseEnter()}
         onMouseLeave={() => handleMouseLeave()}
         onAnimationEnd={() => handleAnimationEnd()} 
-        className={`card ${isSelected ? 'selected' : ''} ${card?.manaCost > mana ? 'unplayable' : ''}
+        className={`card ${isSelected ? 'selected' : ''} ${hovering ? 'hovering' : ''} ${card?.manaCost > mana ? 'unplayable' : ''}
           ${animationState === 'draw' ? 'animate-draw' : ''}
           ${animationState === 'useCard' ? 'animate-use-card' : ''}
           ${animationState === 'discardCard' ? 'animate-use-card' : ''} `} 
         onClick={(e) => { e.stopPropagation(); toggleActiveOnClick(card); }}>
         <div className="card-mana-container">
-          <div className="card-mana-value">
-            { card.manaCost }
-          </div>
+          <div className="card-mana-value">{ card.manaCost }</div>
         </div>
-        <div>title: {card.title}</div>
-        <div>description: <KeywordText text={card.description ?? ''} /></div>
-        <div>type: {card.type}</div>
+        <div className="card-image-area" />
+        <div className="card-nameplate">
+          <span className="card-nameplate-text">{card.title}</span>
+        </div>
+        <div className="card-description-area">
+          <p className="card-description-text">
+            <KeywordText text={card.description ?? ''} />
+          </p>
+        </div>
+        <div className="card-description-footer">
+          <span className="card-type-label">{card.type}</span>
+        </div>
       </div>
       
     )

@@ -165,6 +165,8 @@ export function generateMap(config: MapConfig = DEFAULT_MAP_CONFIG): RunMap {
     connections: [],
     visited: true,
     available: false,
+    offsetX: 0,
+    offsetY: 0,
   };
   levels.push({ level: 0, nodes: [startNode] });
 
@@ -181,6 +183,8 @@ export function generateMap(config: MapConfig = DEFAULT_MAP_CONFIG): RunMap {
         connections: [],
         visited: false,
         available: false,
+        offsetX: Math.round((Math.random() - 0.5) * 20),
+        offsetY: Math.round((Math.random() - 0.5) * 40),
       });
     }
     levels.push({ level: lvl, nodes });
@@ -196,6 +200,8 @@ export function generateMap(config: MapConfig = DEFAULT_MAP_CONFIG): RunMap {
     connections: [],
     visited: false,
     available: false,
+    offsetX: 0,
+    offsetY: 0,
   };
   levels.push({ level: bossLevel, nodes: [bossNode] });
 
